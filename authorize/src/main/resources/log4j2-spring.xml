@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="error">
+    <appenders>
+
+        <Console name="defaultOut" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%-5p] %d{yyyy-MM-dd HH:mm:ss,SSS} method:%l%n%m%n" />
+        </Console>
+
+        <Console name="systemOutWithColor" target="SYSTEM_OUT">
+            <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%highlight{[%-5p] %d{yyyy-MM-dd HH:mm:ss,SSS} method:%l%n%m%n}{FATAL=red, ERROR=red, WARN=yellow, INFO=cyan, DEBUG=cyan,TRACE=blue}"/>
+        </Console>
+    </appenders>
+
+    <loggers>
+        <logger name="com.qzero.bt.authorize" level="trace" additivity="false">
+            <AppenderRef ref="systemOutWithColor" />
+        </logger>
+
+        <root level="info">
+            <appender-ref ref="defaultOut"/>
+        </root>
+    </loggers>
+</configuration>
