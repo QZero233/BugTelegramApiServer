@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan("com.qzero.bt.main")
+@ComponentScan("com.qzero.bt")
 @ComponentScan("com.qzero.bt.authorize")
 public class ServerApplication {
 

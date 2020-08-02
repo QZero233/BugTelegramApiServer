@@ -1,7 +1,7 @@
 package com.qzero.bt.authorize.controller;
 
-import com.qzero.bt.authorize.data.ServerStatus;
 import com.qzero.bt.authorize.view.ExecuteResult;
+import com.qzero.bt.authorize.data.ServerStatus;
 import com.qzero.bt.authorize.view.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

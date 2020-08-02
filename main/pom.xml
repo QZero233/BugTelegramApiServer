@@ -12,8 +12,6 @@
     <groupId>com.qzero</groupId>
     <artifactId>bt-main</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>bt-main</name>
     <description>Demo project for Spring Boot</description>
-
 
 </project>

@@ -1,11 +1,11 @@
 package com.qzero.bt.authorize.controller;
 
+import com.qzero.bt.authorize.view.ExecuteResult;
 import com.qzero.bt.authorize.data.AuthorizeInfoEntity;
 import com.qzero.bt.authorize.data.TokenEntity;
 import com.qzero.bt.authorize.data.UserInfoEntity;
 import com.qzero.bt.authorize.service.AccountModifyService;
 import com.qzero.bt.authorize.view.ActionResult;
-import com.qzero.bt.authorize.view.ExecuteResult;
 import com.qzero.bt.authorize.view.JsonView;
 import com.qzero.bt.authorize.view.PackedParameter;
 import org.springframework.beans.factory.annotation.Autowired;

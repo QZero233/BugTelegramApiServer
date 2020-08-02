@@ -1,10 +1,10 @@
 package com.qzero.bt.authorize.permission;
 
+import com.qzero.bt.authorize.exception.ResourceDoesNotExistException;
 import com.qzero.bt.authorize.dao.TokenDao;
 import com.qzero.bt.authorize.data.TokenEntity;
 import com.qzero.bt.authorize.exception.ErrorCodeList;
 import com.qzero.bt.authorize.exception.PermissionDeniedException;
-import com.qzero.bt.authorize.exception.ResourceDoesNotExistException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.aspectj.lang.ProceedingJoinPoint;

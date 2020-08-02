@@ -1,13 +1,13 @@
 package com.qzero.bt.authorize.service;
 
+import com.qzero.bt.authorize.permission.PermissionNameList;
 import com.qzero.bt.authorize.dao.AuthorizeInfoDao;
 import com.qzero.bt.authorize.dao.TokenDao;
 import com.qzero.bt.authorize.dao.UserInfoDao;
-import com.qzero.bt.authorize.data.AuthorizeInfoEntity;
 import com.qzero.bt.authorize.data.TokenEntity;
+import com.qzero.bt.authorize.data.AuthorizeInfoEntity;
 import com.qzero.bt.authorize.data.UserInfoEntity;
 import com.qzero.bt.authorize.permission.PermissionCheck;
-import com.qzero.bt.authorize.permission.PermissionNameList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
