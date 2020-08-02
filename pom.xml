@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-
     <packaging>pom</packaging>
 
     <modules>
         <module>authorize</module>
+        <module>server</module>
     </modules>
 
     <modelVersion>4.0.0</modelVersion>
@@ -16,7 +16,7 @@
     </parent>
 
     <groupId>com.qzero</groupId>
-    <artifactId>bt</artifactId>
+    <artifactId>bt-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>bt</name>
     <description>The api server of BugTelegram</description>
