@@ -6,22 +6,33 @@ import javax.persistence.*;
 @Table(name = "userInfo")
 public class UserInfoEntity {
 
-    public static final int STATUS_ALIVE=0;
-    public static final int STATUS_FREEZING=1;
+    public static final int STATUS_OFFLINE=0;
+    public static final int STATUS_ONLINE=1;
+    public static final int STATUS_BUSY=2;
+    public static final int STATUS_LEAVING=3;
 
+    /**
+     * The username
+     */
     @Id
     @Basic
     @Column(name = "userName")
     private String userName;
 
-    @Basic
-    @Column(name = "accountAuthorizeStatus")
-    private int accountAuthorizeStatus;
 
+    /**
+     * The account status
+     * It can be seen by everyone
+     * It can be Busy,Leaving etc.
+     */
     @Basic
     @Column(name = "accountStatus")
     private int accountStatus;
 
+    /**
+     * The motto of the account
+     * It can also be seen by eneryone
+     */
     @Basic
     @Column(name = "motto")
     private String motto;
@@ -35,14 +46,6 @@ public class UserInfoEntity {
 
     public void setUserName(String userName) {
         this.userName = userName;
-    }
-
-    public int getAccountAuthorizeStatus() {
-        return accountAuthorizeStatus;
-    }
-
-    public void setAccountAuthorizeStatus(int accountAuthorizeStatus) {
-        this.accountAuthorizeStatus = accountAuthorizeStatus;
     }
 
     public int getAccountStatus() {
@@ -65,7 +68,6 @@ public class UserInfoEntity {
     public String toString() {
         return "UserInfoEntity{" +
                 "userName='" + userName + '\'' +
-                ", accountAuthorizeStatus=" + accountAuthorizeStatus +
                 ", accountStatus=" + accountStatus +
                 ", motto='" + motto + '\'' +
                 '}';

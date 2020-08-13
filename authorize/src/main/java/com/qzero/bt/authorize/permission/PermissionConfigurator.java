@@ -95,4 +95,7 @@ public class PermissionConfigurator {
     @PermissionConfig(value = PermissionNameList.PERMISSION_READ_USER_INFO,minPermissionLevel = TokenEntity.PERMISSION_LEVEL_ANYONE)
     private void readUserInfo(){}
 
+    @PermissionConfig(value = PermissionNameList.PERMISSION_UPDATE_USER_INFO,minPermissionLevel = TokenEntity.PERMISSION_LEVEL_APPLICATION)
+    private void updateUserInfo(){}
+
 }

@@ -1,5 +1,7 @@
 package com.qzero.bt.authorize.service;
 
+import com.qzero.bt.authorize.exception.ErrorCodeList;
+import com.qzero.bt.authorize.exception.ResponsiveException;
 import com.qzero.bt.authorize.permission.PermissionNameList;
 import com.qzero.bt.authorize.dao.AuthorizeInfoDao;
 import com.qzero.bt.authorize.dao.TokenDao;
@@ -44,8 +46,10 @@ public class AccountModifyService {
      */
     @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_ACCOUNT)
     public void changePassword(TokenEntity userToken, AuthorizeInfoEntity authorizeInfoEntity){
-        authorizeInfoEntity.setUserName(userToken.getOwnerUserName());
-        authorizeInfoDao.updatePassword(authorizeInfoEntity);
+        AuthorizeInfoEntity authorizeInfoEntityFromDao=authorizeInfoDao.getAuthorizeInfoByName(userToken.getOwnerUserName());
+        authorizeInfoEntityFromDao.setPasswordHash(authorizeInfoEntity.getPasswordHash());
+        authorizeInfoDao.updateAuthorizeInfo(authorizeInfoEntity);
+
         tokenDao.deleteAllTokensLessThanGlobalByOwnerUserName(userToken.getOwnerUserName());
     }
 
@@ -56,17 +60,17 @@ public class AccountModifyService {
      */
     @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_ACCOUNT)
     public void freezeAccount(TokenEntity tokenEntity){
-        AuthorizeInfoEntity authorizeInfoEntity = authorizeInfoDao.getUserByName(tokenEntity.getOwnerUserName());
-        authorizeInfoEntity.getUserInfoEntity().setAccountStatus(UserInfoEntity.STATUS_FREEZING);
-        authorizeInfoDao.updateUserInfo(authorizeInfoEntity);
+        AuthorizeInfoEntity authorizeInfoEntity = authorizeInfoDao.getAuthorizeInfoByName(tokenEntity.getOwnerUserName());
+        authorizeInfoEntity.setAuthorizeStatus(AuthorizeInfoEntity.STATUS_FREEZING);
+        authorizeInfoDao.updateAuthorizeInfo(authorizeInfoEntity);
         tokenDao.deleteAllTokensLessThanGlobalByOwnerUserName(tokenEntity.getOwnerUserName());
     }
 
     @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_ACCOUNT)
     public void unfreezeAccount(TokenEntity tokenEntity){
-        AuthorizeInfoEntity authorizeInfoEntity = authorizeInfoDao.getUserByName(tokenEntity.getOwnerUserName());
-        authorizeInfoEntity.getUserInfoEntity().setAccountStatus(UserInfoEntity.STATUS_ALIVE);
-        authorizeInfoDao.updateUserInfo(authorizeInfoEntity);
+        AuthorizeInfoEntity authorizeInfoEntity = authorizeInfoDao.getAuthorizeInfoByName(tokenEntity.getOwnerUserName());
+        authorizeInfoEntity.setAuthorizeStatus(AuthorizeInfoEntity.STATUS_ALIVE);
+        authorizeInfoDao.updateAuthorizeInfo(authorizeInfoEntity);
     }
 
     @PermissionCheck(PermissionNameList.PERMISSION_READ_USER_INFO)
@@ -74,6 +78,12 @@ public class AccountModifyService {
         String userName=tokenEntity.getOwnerUserName();
         UserInfoEntity userInfoEntity=userInfoDao.getUserInfo(userName);
         return userInfoEntity;
+    }
+
+    @PermissionCheck(PermissionNameList.PERMISSION_UPDATE_USER_INFO)
+    public void updateUserInfo(TokenEntity tokenEntity, UserInfoEntity userInfoEntity) {
+        userInfoEntity.setUserName(tokenEntity.getOwnerUserName());
+        userInfoDao.updateUserInfo(userInfoEntity);
     }
 
 }

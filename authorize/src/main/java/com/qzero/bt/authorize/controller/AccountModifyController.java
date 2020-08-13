@@ -1,11 +1,12 @@
 package com.qzero.bt.authorize.controller;
 
-import com.qzero.bt.authorize.view.ExecuteResult;
 import com.qzero.bt.authorize.data.AuthorizeInfoEntity;
 import com.qzero.bt.authorize.data.TokenEntity;
 import com.qzero.bt.authorize.data.UserInfoEntity;
+import com.qzero.bt.authorize.exception.ResponsiveException;
 import com.qzero.bt.authorize.service.AccountModifyService;
 import com.qzero.bt.authorize.view.ActionResult;
+import com.qzero.bt.authorize.view.ExecuteResult;
 import com.qzero.bt.authorize.view.JsonView;
 import com.qzero.bt.authorize.view.PackedParameter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +85,18 @@ public class AccountModifyController {
 
         ModelAndView modelAndView=new ModelAndView(jsonView);
         modelAndView.addObject(new ExecuteResult(true,null,userInfoEntity));
+        return modelAndView;
+    }
+
+    @RequestMapping("/update_user_info")
+    public ModelAndView updateUserInfo(@RequestBody PackedParameter parameter){
+        TokenEntity tokenEntity=parameter.getParameter(TokenEntity.class);
+        UserInfoEntity userInfoEntity=parameter.getParameter(UserInfoEntity.class);
+
+        service.updateUserInfo(tokenEntity,userInfoEntity);
+
+        ModelAndView modelAndView=new ModelAndView(jsonView);
+        modelAndView.addObject(new ExecuteResult(true,null));
         return modelAndView;
     }
 

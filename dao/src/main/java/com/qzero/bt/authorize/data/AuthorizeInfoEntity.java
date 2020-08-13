@@ -7,6 +7,9 @@ import javax.persistence.*;
 @Table(name = "authorizeInfo")
 public class AuthorizeInfoEntity {
 
+    public static final int STATUS_ALIVE=0;
+    public static final int STATUS_FREEZING=1;
+
     /**
      * The name of the user
      * It's the identity of a user
@@ -33,11 +36,12 @@ public class AuthorizeInfoEntity {
     private String passwordHash;
 
     /**
-     * The status of the account
+     * The authorize status of the account
+     * It can determine whether login action is approved or not
      */
-    @OneToOne(cascade = CascadeType.ALL)
-    @PrimaryKeyJoinColumn
-    private UserInfoEntity userInfoEntity;
+    @Basic
+    @Column(name = "authorizeStatus")
+    private int authorizeStatus;
 
     public AuthorizeInfoEntity() {
     }
@@ -66,12 +70,12 @@ public class AuthorizeInfoEntity {
         this.passwordHash = passwordHash;
     }
 
-    public UserInfoEntity getUserInfoEntity() {
-        return userInfoEntity;
+    public int getAuthorizeStatus() {
+        return authorizeStatus;
     }
 
-    public void setUserInfoEntity(UserInfoEntity userInfoEntity) {
-        this.userInfoEntity = userInfoEntity;
+    public void setAuthorizeStatus(int authorizeStatus) {
+        this.authorizeStatus = authorizeStatus;
     }
 
     @Override
@@ -80,7 +84,7 @@ public class AuthorizeInfoEntity {
                 "userName='" + userName + '\'' +
                 ", codeHash='" + codeHash + '\'' +
                 ", passwordHash='" + passwordHash + '\'' +
-                ", userInfoEntity=" + userInfoEntity +
+                ", authorizeStatus=" + authorizeStatus +
                 '}';
     }
 }

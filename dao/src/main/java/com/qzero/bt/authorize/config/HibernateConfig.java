@@ -18,7 +18,7 @@ public class HibernateConfig {
     public LocalSessionFactoryBean sessionFactoryBean() {
         LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
         sessionFactoryBean.setDataSource(dataSource);
-        sessionFactoryBean.setPackagesToScan("com.qzero.bt.data");//dao和entity的公共包
+        sessionFactoryBean.setPackagesToScan("com.qzero.bt.authorize");//dao和entity的公共包
         Properties properties = new Properties();
         properties.setProperty("hibernate.current_session_context_class", "org.springframework.orm.hibernate5.SpringSessionContext");
         sessionFactoryBean.setHibernateProperties(properties);

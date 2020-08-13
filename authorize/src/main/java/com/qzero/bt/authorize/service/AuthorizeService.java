@@ -32,27 +32,33 @@ public class AuthorizeService {
      * @return The token if it succeeded,or it will be null
      */
     public TokenEntity login(AuthorizeInfoEntity authorizeInfoEntity, TokenEntity tokenEntity) throws ResponsiveException {
-        AuthorizeInfoEntity authorizeInfoEntityFromDao;
+        AuthorizeInfoEntity authorizeInfoEntityFromDao=authorizeInfoDao.getAuthorizeInfoByName(authorizeInfoEntity.getUserName());
+
         if(authorizeInfoEntity.getCodeHash()==null){
-            authorizeInfoEntityFromDao = authorizeInfoDao.getUserByNameAndPassword(authorizeInfoEntity);
+            //Check password
+            if(!authorizeInfoEntityFromDao.getPasswordHash().equals(authorizeInfoEntity.getPasswordHash())){
+                throw new ResponsiveException(ErrorCodeList.CODE_WRONG_LOGIN_INFO,"Your login info is wrong,login denied");
+            }
 
             //Use password,only application token
             tokenEntity.setPermissionLevel(TokenEntity.PERMISSION_LEVEL_APPLICATION);
 
             //And if the account is freezing,deny
             if(authorizeInfoEntityFromDao !=null &&
-                    authorizeInfoEntityFromDao.getUserInfoEntity().getAccountStatus()== UserInfoEntity.STATUS_FREEZING){
+                    authorizeInfoEntityFromDao.getAuthorizeStatus()== AuthorizeInfoEntity.STATUS_FREEZING){
                 throw new ResponsiveException(ErrorCodeList.CODE_ACCOUNT_FROZEN,"The account is freezing!\nLogin refused!");
             }
         }else{
-            authorizeInfoEntityFromDao = authorizeInfoDao.getUserByNameAndCode(authorizeInfoEntity);
+            //Check code
+            if(!authorizeInfoEntityFromDao.getCodeHash().equals(authorizeInfoEntity.getCodeHash())){
+                throw new ResponsiveException(ErrorCodeList.CODE_WRONG_LOGIN_INFO,"Your login info is wrong,login denied");
+            }
 
             //Using code can gain global permission
+            //And there no need checking account status
+            //Since frozen account can login with code
             tokenEntity.setPermissionLevel(TokenEntity.PERMISSION_LEVEL_GLOBAL);
         }
-
-        if(authorizeInfoEntityFromDao ==null)
-            throw new ResponsiveException(ErrorCodeList.CODE_WRONG_LOGIN_INFO,"Your login info is wrong,login denied");
 
         tokenEntity.setTokenId(UUIDUtils.getRandomUUID());
         tokenEntity.setOwnerUserName(authorizeInfoEntityFromDao.getUserName());
