@@ -8,13 +8,13 @@
     <dependencies>
         <dependency>
             <groupId>com.qzero</groupId>
-            <artifactId>bt-main</artifactId>
+            <artifactId>bt-authorize</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>com.qzero</groupId>
-            <artifactId>bt-authorize</artifactId>
+            <artifactId>bt-admin</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 

@@ -1,12 +1,13 @@
 package com.qzero.bt.authorize.controller;
 
 import com.qzero.bt.authorize.service.AuthorizeService;
-import com.qzero.bt.authorize.view.ExecuteResult;
-import com.qzero.bt.authorize.data.AuthorizeInfoEntity;
-import com.qzero.bt.authorize.data.TokenEntity;
-import com.qzero.bt.authorize.exception.ResponsiveException;
-import com.qzero.bt.authorize.view.JsonView;
-import com.qzero.bt.authorize.view.PackedParameter;
+import com.qzero.bt.common.exception.ResponsiveException;
+import com.qzero.bt.common.view.ActionResult;
+import com.qzero.bt.common.view.ExecuteResult;
+import com.qzero.bt.common.view.JsonView;
+import com.qzero.bt.common.view.PackedParameter;
+import com.qzero.bt.data.AuthorizeInfoEntity;
+import com.qzero.bt.data.TokenEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -64,5 +65,18 @@ public class AuthorizeController {
         return modelAndView;
     }
 
+    @RequestMapping("/get_authorize_status")
+    public ModelAndView getAuthorizeStatus(@RequestBody PackedParameter parameter){
+        TokenEntity tokenEntity=parameter.getParameter(TokenEntity.class);
+
+        int status=service.getAuthorizeStatus(tokenEntity);
+
+        PackedParameter packedParameter=new PackedParameter();
+        packedParameter.addParameter("authorizeStatus",status);
+
+        ModelAndView modelAndView=new ModelAndView(jsonView);
+        modelAndView.addObject(new ExecuteResult(new ActionResult(true,null),packedParameter));
+        return modelAndView;
+    }
 
 }

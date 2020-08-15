@@ -1,0 +1,30 @@
+<configuration scan="false">
+    <include resource="org/springframework/boot/logging/logback/base.xml" />
+    <conversionRule conversionWord="customColor" converterClass="com.qzero.bt.common.config.LogbackColorConfig"/>
+
+    <appender name="coloredSystemOut" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}|%customColor(%-5p)|%boldYellow(%logger)|%msg %n</pattern>
+        </layout>
+    </appender>
+
+    <!--    Show trace log in develop stage-->
+    <springProfile name="dev">
+        <logger name="com.qzero" level="trace" additivity="false">
+            <appender-ref ref="coloredSystemOut" />
+        </logger>
+    </springProfile>
+
+    <!--    Show info log in product stage-->
+    <springProfile name="prod">
+        <logger name="com.qzero" level="info" additivity="false">
+            <appender-ref ref="coloredSystemOut" />
+        </logger>
+    </springProfile>
+
+    <!--    Default logger is springboot default console-->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+</configuration>

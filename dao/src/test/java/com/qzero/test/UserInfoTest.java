@@ -1,7 +1,7 @@
 package com.qzero.test;
 
-import com.qzero.bt.authorize.dao.UserInfoDao;
-import com.qzero.bt.authorize.data.UserInfoEntity;
+import com.qzero.bt.dao.UserInfoDao;
+import com.qzero.bt.data.UserInfoEntity;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

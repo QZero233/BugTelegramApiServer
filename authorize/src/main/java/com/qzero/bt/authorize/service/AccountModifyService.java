@@ -1,15 +1,13 @@
 package com.qzero.bt.authorize.service;
 
-import com.qzero.bt.authorize.exception.ErrorCodeList;
-import com.qzero.bt.authorize.exception.ResponsiveException;
-import com.qzero.bt.authorize.permission.PermissionNameList;
-import com.qzero.bt.authorize.dao.AuthorizeInfoDao;
-import com.qzero.bt.authorize.dao.TokenDao;
-import com.qzero.bt.authorize.dao.UserInfoDao;
-import com.qzero.bt.authorize.data.TokenEntity;
-import com.qzero.bt.authorize.data.AuthorizeInfoEntity;
-import com.qzero.bt.authorize.data.UserInfoEntity;
-import com.qzero.bt.authorize.permission.PermissionCheck;
+import com.qzero.bt.common.permission.PermissionNameList;
+import com.qzero.bt.dao.AuthorizeInfoDao;
+import com.qzero.bt.dao.TokenDao;
+import com.qzero.bt.dao.UserInfoDao;
+import com.qzero.bt.data.TokenEntity;
+import com.qzero.bt.data.AuthorizeInfoEntity;
+import com.qzero.bt.data.UserInfoEntity;
+import com.qzero.bt.common.permission.PermissionCheck;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +46,7 @@ public class AccountModifyService {
     public void changePassword(TokenEntity userToken, AuthorizeInfoEntity authorizeInfoEntity){
         AuthorizeInfoEntity authorizeInfoEntityFromDao=authorizeInfoDao.getAuthorizeInfoByName(userToken.getOwnerUserName());
         authorizeInfoEntityFromDao.setPasswordHash(authorizeInfoEntity.getPasswordHash());
-        authorizeInfoDao.updateAuthorizeInfo(authorizeInfoEntity);
+        authorizeInfoDao.updateAuthorizeInfo(authorizeInfoEntityFromDao);
 
         tokenDao.deleteAllTokensLessThanGlobalByOwnerUserName(userToken.getOwnerUserName());
     }
