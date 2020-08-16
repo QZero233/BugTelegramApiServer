@@ -2,6 +2,7 @@ package com.qzero.bt.data;
 
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "authorizeInfo")
@@ -76,6 +77,22 @@ public class AuthorizeInfoEntity {
 
     public void setAuthorizeStatus(int authorizeStatus) {
         this.authorizeStatus = authorizeStatus;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AuthorizeInfoEntity that = (AuthorizeInfoEntity) o;
+        return authorizeStatus == that.authorizeStatus &&
+                Objects.equals(userName, that.userName) &&
+                Objects.equals(codeHash, that.codeHash) &&
+                Objects.equals(passwordHash, that.passwordHash);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userName, codeHash, passwordHash, authorizeStatus);
     }
 
     @Override
