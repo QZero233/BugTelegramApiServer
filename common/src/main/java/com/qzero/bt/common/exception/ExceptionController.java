@@ -1,41 +1,35 @@
 package com.qzero.bt.common.exception;
 
-import com.qzero.bt.common.exception.ErrorCodeList;
-import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.common.view.ActionResult;
-import com.qzero.bt.common.view.ExecuteResult;
-import com.qzero.bt.common.view.JsonView;
-import com.qzero.bt.common.view.PackedParameter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.qzero.bt.common.view.IPackedObjectFactory;
+import com.qzero.bt.common.view.PackedObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.UndeclaredThrowableException;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class ExceptionController{
 
-    private static final Logger log= LogManager.getLogger();
+    private final Logger log= LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private JsonView jsonView;
+    private IPackedObjectFactory packedObjectFactory;
 
     @ExceptionHandler
-    public ModelAndView handleException(HttpServletRequest request,
+    public PackedObject handleException(HttpServletRequest request,
                                         Throwable e){
-
         log.error(e.getMessage(),e);
         ActionResult actionResult=processException(e);
-        ExecuteResult result=new ExecuteResult(actionResult,new PackedParameter());
 
-        ModelAndView modelAndView=new ModelAndView(jsonView);
-        modelAndView.addObject(result);
-        return modelAndView;
+        PackedObject result=packedObjectFactory.getPackedObject();
+        result.addObject(actionResult);
+        return result;
     }
 
     private ActionResult processException(Throwable e){

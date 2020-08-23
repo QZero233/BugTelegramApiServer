@@ -1,14 +1,13 @@
 package com.qzero.bt.authorize.controller;
 
-import com.qzero.bt.common.view.ExecuteResult;
+import com.qzero.bt.common.view.IPackedObjectFactory;
+import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.data.ServerStatus;
-import com.qzero.bt.common.view.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @RequestMapping(value = "/status")
 public class ServerStatusController {
 
@@ -16,12 +15,12 @@ public class ServerStatusController {
     private ServerStatus currentServerStatus;
 
     @Autowired
-    private JsonView jsonView;
+    private IPackedObjectFactory packedObjectFactory;
 
     @RequestMapping("/request")
-    public ModelAndView requestServerStatus(){
-        ModelAndView modelAndView=new ModelAndView(jsonView);
-        modelAndView.addObject(new ExecuteResult(true,null,currentServerStatus));
-        return modelAndView;
+    public PackedObject requestServerStatus(){
+        PackedObject result=packedObjectFactory.getPackedObject();
+        result.addObject(currentServerStatus);
+        return result;
     }
 }

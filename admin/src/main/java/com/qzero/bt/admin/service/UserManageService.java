@@ -11,6 +11,7 @@ import com.qzero.bt.common.permission.PermissionCheck;
 import com.qzero.bt.common.permission.PermissionNameList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import java.util.List;
 
 import static com.qzero.bt.common.exception.ErrorCodeList.*;
 
-@Component
+@Service
 @Transactional
 public class UserManageService {
 

@@ -14,6 +14,12 @@ public class ActionResult {
         this.message = message;
     }
 
+    public ActionResult(boolean succeeded, int statusCode, String message) {
+        this.succeeded = succeeded;
+        this.statusCode = statusCode;
+        this.message = message;
+    }
+
     public boolean isSucceeded() {
         return succeeded;
     }

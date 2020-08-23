@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,7 @@ public class NewReturnValue {
 
         ObjectMapper mapper=new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
         Map<String ,Object> map=mapper.convertValue(obj,Map.class);
 
         if(prefix!=null && !prefix.equals("")){
