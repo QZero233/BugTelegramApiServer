@@ -3,15 +3,15 @@ package com.qzero.bt.admin.controller;
 import com.qzero.bt.admin.data.UserInfoForAdmin;
 import com.qzero.bt.admin.service.UserManageService;
 import com.qzero.bt.common.exception.ResponsiveException;
+import com.qzero.bt.common.permission.PermissionCheck;
+import com.qzero.bt.common.permission.PermissionNameList;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.data.AuthorizeInfoEntity;
 import com.qzero.bt.data.TokenEntity;
 import com.qzero.bt.data.UserInfoEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,43 +25,41 @@ public class AdminController {
     @Autowired
     private IPackedObjectFactory packedObjectFactory;
 
-    @RequestMapping("/add_user")
+    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
+    @PostMapping("/user")
     public PackedObject addUser(@RequestBody PackedObject parameter) throws ResponsiveException {
-        TokenEntity tokenEntity=parameter.parseObject(TokenEntity.class);
         UserInfoEntity userInfoEntity=parameter.parseObject(UserInfoEntity.class);
         AuthorizeInfoEntity authorizeInfoEntity=parameter.parseObject(AuthorizeInfoEntity.class);
 
-        service.addUser(tokenEntity,authorizeInfoEntity,userInfoEntity);
+        service.addUser(authorizeInfoEntity,userInfoEntity);
 
         return packedObjectFactory.getReturnValue(true,null);
     }
 
-    @RequestMapping("/delete_user")
-    public PackedObject deleteUser(@RequestBody PackedObject parameter) throws ResponsiveException {
-        TokenEntity tokenEntity=parameter.parseObject(TokenEntity.class);
-        String userName=parameter.parseObject("username",String.class);
-
-        service.deleteUser(tokenEntity,userName);
+    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
+    @DeleteMapping("/user/{user_name}")
+    public PackedObject deleteUser(@RequestHeader("owner_user_name") String operatorName,
+                                   @PathVariable("user_name") String userName) throws ResponsiveException {
+        service.deleteUser(operatorName,userName);
 
         return packedObjectFactory.getReturnValue(true,null);
     }
 
-    @RequestMapping("/update_user")
+    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
+    @PutMapping("/user")
     public PackedObject updateUser(@RequestBody PackedObject parameter) throws ResponsiveException{
-        TokenEntity tokenEntity=parameter.parseObject(TokenEntity.class);
         UserInfoEntity userInfoEntity=parameter.parseObject(UserInfoEntity.class);
         AuthorizeInfoEntity authorizeInfoEntity=parameter.parseObject(AuthorizeInfoEntity.class);
 
-        service.updateUser(tokenEntity,authorizeInfoEntity,userInfoEntity);
+        service.updateUser(authorizeInfoEntity,userInfoEntity);
 
         return packedObjectFactory.getReturnValue(true,null);
     }
 
-    @RequestMapping("/get_all_users")
-    public PackedObject getAllUsers(@RequestBody PackedObject parameter){
-        TokenEntity tokenEntity=parameter.parseObject(TokenEntity.class);
-
-        List<UserInfoForAdmin> result=service.getAllUsers(tokenEntity);
+    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
+    @GetMapping("/all_users")
+    public PackedObject getAllUsers(){
+        List<UserInfoForAdmin> result=service.getAllUsers();
 
         PackedObject returnValue=packedObjectFactory.getReturnValue(true,null);
         returnValue.addObject("userList",result);
@@ -69,12 +67,10 @@ public class AdminController {
         return returnValue;
     }
 
-    @RequestMapping("/get_user")
-    public PackedObject getUser(@RequestBody PackedObject parameter){
-        TokenEntity tokenEntity=parameter.parseObject(TokenEntity.class);
-        String userName=parameter.parseObject("username",String.class);
-
-        UserInfoForAdmin result=service.getUser(tokenEntity,userName);
+    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
+    @GetMapping("/user/{user_name}")
+    public PackedObject getUser(@PathVariable("user_name") String userName){
+        UserInfoForAdmin result=service.getUser(userName);
 
         PackedObject returnValue=packedObjectFactory.getReturnValue(true,null);
         returnValue.addObject(result);

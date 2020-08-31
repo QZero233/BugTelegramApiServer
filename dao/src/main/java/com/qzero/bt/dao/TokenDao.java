@@ -33,9 +33,9 @@ public class TokenDao {
         session.update(tokenEntity);
     }
 
-    public TokenEntity getTokenById(TokenEntity tokenEntity){
+    public TokenEntity getTokenById(String tokenId){
         Session session=sessionFactory.getCurrentSession();
-        return session.get(TokenEntity.class,tokenEntity.getTokenId());
+        return session.get(TokenEntity.class,tokenId);
     }
 
     public List<TokenEntity> getAllTokensByOwnerUserName(String ownerUserName){

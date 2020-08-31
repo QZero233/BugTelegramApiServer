@@ -1,16 +1,12 @@
 package com.qzero.bt.admin.service;
 
 import com.qzero.bt.admin.data.UserInfoForAdmin;
+import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.dao.AuthorizeInfoDao;
 import com.qzero.bt.dao.UserInfoDao;
 import com.qzero.bt.data.AuthorizeInfoEntity;
-import com.qzero.bt.data.TokenEntity;
 import com.qzero.bt.data.UserInfoEntity;
-import com.qzero.bt.common.exception.ResponsiveException;
-import com.qzero.bt.common.permission.PermissionCheck;
-import com.qzero.bt.common.permission.PermissionNameList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,8 +25,8 @@ public class UserManageService {
     @Autowired
     private AuthorizeInfoDao authorizeInfoDao;
 
-    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
-    public void addUser(TokenEntity token, AuthorizeInfoEntity authorizeInfo, UserInfoEntity userInfo) throws ResponsiveException {
+
+    public void addUser(AuthorizeInfoEntity authorizeInfo, UserInfoEntity userInfo) throws ResponsiveException {
         if(!authorizeInfo.getUserName().equals(userInfo.getUserName()))
             throw new ResponsiveException(CODE_BAD_REQUEST_PARAMETER,"Multi username");
 
@@ -44,14 +40,14 @@ public class UserManageService {
         userInfoDao.addUserInfo(userInfo);
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
-    public void deleteUser(TokenEntity token,String username) throws ResponsiveException {
+
+    public void deleteUser(String operatorName,String username) throws ResponsiveException {
         UserInfoEntity userInfoEntity=userInfoDao.getUserInfo(username);
         if(userInfoEntity==null)
             throw new ResponsiveException(CODE_MISSING_RESOURCE,"User does not exist");
 
         //Can not delete yourself
-        if(token.getOwnerUserName().equals(username)){
+        if(operatorName.equals(username)){
             throw new ResponsiveException(CODE_BAD_REQUEST_PARAMETER,"Can not delete yourself");
         }
 
@@ -65,8 +61,8 @@ public class UserManageService {
         authorizeInfoDao.deleteAuthorizeInfo(username);
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
-    public void updateUser(TokenEntity token,AuthorizeInfoEntity newAuthorizeInfo,UserInfoEntity newUserInfo) throws ResponsiveException {
+
+    public void updateUser(AuthorizeInfoEntity newAuthorizeInfo,UserInfoEntity newUserInfo) throws ResponsiveException {
         //FIXME if freeze,delete tokens
         if(!newAuthorizeInfo.getUserName().equals(newUserInfo.getUserName()))
             throw new ResponsiveException(CODE_BAD_REQUEST_PARAMETER,"Multi username");
@@ -92,8 +88,8 @@ public class UserManageService {
         userInfoDao.updateUserInfo(newUserInfo);
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
-    public List<UserInfoForAdmin> getAllUsers(TokenEntity token){
+
+    public List<UserInfoForAdmin> getAllUsers(){
         List<UserInfoForAdmin> result=new ArrayList<>();
 
         List<UserInfoEntity> userInfoEntityList=userInfoDao.getAllUserInfo();
@@ -106,8 +102,8 @@ public class UserManageService {
         return result;
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_MANAGE_USER)
-    public UserInfoForAdmin getUser(TokenEntity token,String userName){
+
+    public UserInfoForAdmin getUser(String userName){
         UserInfoEntity userInfoEntity=userInfoDao.getUserInfo(userName);
         AuthorizeInfoEntity authorizeInfoEntity=authorizeInfoDao.getAuthorizeInfoByName(userName);
 

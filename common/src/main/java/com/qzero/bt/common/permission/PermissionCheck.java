@@ -14,4 +14,6 @@ public @interface PermissionCheck {
      */
     String value();
 
+    String[] permissions() default {};
+
 }

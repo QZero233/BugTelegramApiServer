@@ -68,27 +68,24 @@ public class AuthorizeService {
 
     /**
      * Get token by tokenId
-     * @param tokenEntity tokenId and userName needed
      * @return The token,null if not exists
      */
-    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_TOKEN)
-    public TokenEntity getTokenById(TokenEntity tokenEntity){
-        return tokenDao.getTokenById(tokenEntity);
+
+    public TokenEntity getTokenById(String tokenId){
+        return tokenDao.getTokenById(tokenId);
     }
 
     /**
      * Log out
      * @param tokenEntity tokenId needed
      */
-    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_TOKEN)
+
     public void logout(TokenEntity tokenEntity){
         tokenDao.deleteToken(tokenEntity);
     }
 
-
-    @PermissionCheck(PermissionNameList.PERMISSION_READ_USER_INFO)
-    public int getAuthorizeStatus(TokenEntity tokenEntity){
-        return authorizeInfoDao.getAuthorizeInfoByName(tokenEntity.getOwnerUserName()).getAuthorizeStatus();
+    public int getAuthorizeStatus(String userName){
+        return authorizeInfoDao.getAuthorizeInfoByName(userName).getAuthorizeStatus();
     }
 
 }

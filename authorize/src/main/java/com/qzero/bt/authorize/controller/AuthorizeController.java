@@ -2,15 +2,15 @@ package com.qzero.bt.authorize.controller;
 
 import com.qzero.bt.authorize.service.AuthorizeService;
 import com.qzero.bt.common.exception.ResponsiveException;
+import com.qzero.bt.common.permission.PermissionCheck;
+import com.qzero.bt.common.permission.PermissionNameList;
 import com.qzero.bt.common.view.ActionResult;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.data.AuthorizeInfoEntity;
 import com.qzero.bt.data.TokenEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/authorize")
@@ -22,7 +22,7 @@ public class AuthorizeController {
     @Autowired
     private IPackedObjectFactory packedObjectFactory;
 
-    @RequestMapping("/login")
+    @PostMapping("/login")
     public PackedObject login(@RequestBody PackedObject parameter) throws ResponsiveException {
         TokenEntity tokenEntityForLogin=parameter.parseObject("tokenPreset",TokenEntity.class);
         AuthorizeInfoEntity authorizeInfoEntityForLogin =parameter.parseObject("loginUserInfo", AuthorizeInfoEntity.class);
@@ -43,11 +43,11 @@ public class AuthorizeController {
         return result;
     }
 
-    @RequestMapping("/get_token_detail")
-    public PackedObject getTokenDetail(@RequestBody PackedObject parameter){
-        TokenEntity tokenEntity=parameter.parseObject(TokenEntity.class);
 
-        tokenEntity=service.getTokenById(tokenEntity);
+    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_TOKEN)
+    @GetMapping("/token_detail/{token_id}")
+    public PackedObject getTokenDetail(@PathVariable("token_id") String tokenId){
+        TokenEntity tokenEntity=service.getTokenById(tokenId);
 
         PackedObject result=packedObjectFactory.getReturnValue(true,null);
         result.addObject(tokenEntity);
@@ -57,10 +57,11 @@ public class AuthorizeController {
         return result;
     }
 
-    @RequestMapping("/logout")
-    public PackedObject logout(@RequestBody PackedObject parameter){
-        TokenEntity tokenEntity=parameter.parseObject("logoutToken",TokenEntity.class);
-
+    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_TOKEN)
+    @DeleteMapping("/logout/{token_id}")
+    public PackedObject logout(@PathVariable("token_id") String tokenId){
+        TokenEntity tokenEntity=new TokenEntity();
+        tokenEntity.setTokenId(tokenId);
         service.logout(tokenEntity);
 
         PackedObject result=packedObjectFactory.getReturnValue(true,null);
@@ -68,11 +69,10 @@ public class AuthorizeController {
         return result;
     }
 
-    @RequestMapping("/get_authorize_status")
-    public PackedObject getAuthorizeStatus(@RequestBody PackedObject parameter){
-        TokenEntity tokenEntity=parameter.parseObject(TokenEntity.class);
-
-        int status=service.getAuthorizeStatus(tokenEntity);
+    @PermissionCheck(PermissionNameList.PERMISSION_READ_USER_INFO)
+    @GetMapping("/authorize_status/{user_name}")
+    public PackedObject getAuthorizeStatus(@PathVariable("user_name") String userName){
+        int status=service.getAuthorizeStatus(userName);
 
         PackedObject result=packedObjectFactory.getReturnValue(true,null);
 
