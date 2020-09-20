@@ -1,5 +1,6 @@
 package com.qzero.bt.message.controller;
 
+import com.qzero.bt.common.utils.UUIDUtils;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.message.data.message.entity.ChatMessage;
@@ -44,8 +45,38 @@ public class MessageController {
                                     @RequestHeader("owner_user_name") String userName) throws Exception {
 
         ChatMessage message=parameter.parseObject(ChatMessage.class);
+        message.setMessageId(UUIDUtils.getRandomUUID());
         message.setSenderUserName(userName);
         messageService.saveMessage(message);
+
+        List<String> memberNames=sessionService.findAllMemberNames(message.getSessionId());
+        noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_MESSAGE,memberNames,message.getMessageId(),null);
+
+        return packedObjectFactory.getReturnValue(true,message.getMessageId());
+    }
+
+    @DeleteMapping("/{message_id}")
+    public PackedObject deleteMessage(@PathVariable("message_id") String messageId) throws Exception {
+        ChatMessage message=messageService.getMessage(messageId);
+        //TODO CHECK PERMISSION
+
+        List<String> memberNames=sessionService.findAllMemberNames(message.getSessionId());
+        noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_MESSAGE,memberNames,message.getMessageId(),"deleted");
+
+        messageService.deleteMessage(messageId);
+
+        return packedObjectFactory.getReturnValue(true,null);
+    }
+
+    @PutMapping("/{message_id}/status")
+    public PackedObject updateMessageStatus(@PathVariable("message_id") String messageId,
+                                            @RequestBody PackedObject parameter) throws Exception {
+        ChatMessage message=messageService.getMessage(messageId);
+        //TODO CHECK PERMISSION
+
+        String newStatus=parameter.parseObject("messageStatus",String.class);
+
+        messageService.updateMessageStatus(messageId,newStatus);
 
         List<String> memberNames=sessionService.findAllMemberNames(message.getSessionId());
         noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_MESSAGE,memberNames,message.getMessageId(),null);

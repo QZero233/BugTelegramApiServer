@@ -26,13 +26,6 @@ public class DataNotice {
     public DataNotice() {
     }
 
-    public DataNotice(String noticeId, String targetUserName, String dataUri, Long generateTime) {
-        this.noticeId = noticeId;
-        this.targetUserName = targetUserName;
-        this.dataUri = dataUri;
-        this.generateTime = generateTime;
-    }
-
     public String getNoticeId() {
         return noticeId;
     }

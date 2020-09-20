@@ -60,9 +60,9 @@ public class NoticeService {
         addNotice(dataType,targetUserName,dataId,"deleted");
     }
 
-    public void addNoticeToGroupOfUserAndRemind(NoticeDataType dataType,List<String> targetUserNames,String dataId,String dataDetail){
-        for(String userName:targetUserNames){
-            addNotice(dataType,userName,dataId,dataDetail);
+    public void addNoticeToGroupOfUserAndRemind(NoticeDataType dataType,List<String> targetUserNames,String dataId,String dataDetail) {
+        for (String userName : targetUserNames) {
+            addNotice(dataType, userName, dataId, dataDetail);
             remindTargetUser(userName);
         }
     }

@@ -14,19 +14,12 @@ public class MessageService {
     @Autowired
     private MessageDao messageDao;
 
-    @Autowired
-    private MessageUpdateNoticeDao noticeDao;
 
     @Autowired
     private ChatSessionDao sessionDao;
 
     public void saveMessage(ChatMessage chatMessage) throws Exception {
         messageDao.save(chatMessage);
-
-        MessageUpdateNotice notice=new MessageUpdateNotice();
-        notice.setMessageId(chatMessage.getMessageId());
-        notice.setMessageStatus(chatMessage.getMessageStatus());
-        noticeDao.save(notice);
     }
 
     public ChatMessage getMessage(String messageId) throws Exception {
@@ -35,7 +28,6 @@ public class MessageService {
 
     public void deleteMessage(String messageId) throws Exception {
         messageDao.deleteById(messageId);
-        noticeDao.deleteById(messageId);
     }
 
     public void updateMessageStatus(String messageId,String newStatus) throws Exception {
