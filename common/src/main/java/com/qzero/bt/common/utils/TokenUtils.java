@@ -1,6 +1,6 @@
 package com.qzero.bt.common.utils;
 
-import com.qzero.bt.data.TokenEntity;
+import com.qzero.bt.common.authorize.data.TokenEntity;
 
 import javax.servlet.http.HttpServletRequest;
 

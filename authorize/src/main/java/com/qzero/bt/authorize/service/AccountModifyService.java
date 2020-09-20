@@ -1,11 +1,11 @@
 package com.qzero.bt.authorize.service;
 
-import com.qzero.bt.dao.AuthorizeInfoDao;
-import com.qzero.bt.dao.TokenDao;
-import com.qzero.bt.dao.UserInfoDao;
-import com.qzero.bt.data.AuthorizeInfoEntity;
-import com.qzero.bt.data.TokenEntity;
-import com.qzero.bt.data.UserInfoEntity;
+import com.qzero.bt.common.authorize.dao.AuthorizeInfoDao;
+import com.qzero.bt.common.authorize.dao.TokenDao;
+import com.qzero.bt.common.authorize.dao.UserInfoDao;
+import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
+import com.qzero.bt.common.authorize.data.TokenEntity;
+import com.qzero.bt.common.authorize.data.UserInfoEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

@@ -12,4 +12,6 @@ public class PermissionNameList {
 
     public static final String PERMISSION_MANAGE_USER="manageUser";
 
+
+
 }

@@ -3,7 +3,7 @@ package com.qzero.bt.common.test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
-import com.qzero.bt.data.AuthorizeInfoEntity;
+import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
@@ -21,7 +20,6 @@ import java.util.List;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @SpringBootConfiguration
-@ComponentScan("com.qzero.bt.common.exchange")
 public class TestNewReturnValue {
 
     private Logger log= LoggerFactory.getLogger(getClass());

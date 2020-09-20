@@ -7,9 +7,8 @@ import com.qzero.bt.common.permission.PermissionCheck;
 import com.qzero.bt.common.permission.PermissionNameList;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
-import com.qzero.bt.data.AuthorizeInfoEntity;
-import com.qzero.bt.data.TokenEntity;
-import com.qzero.bt.data.UserInfoEntity;
+import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
+import com.qzero.bt.common.authorize.data.UserInfoEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

@@ -2,7 +2,7 @@ package com.qzero.bt.authorize.controller;
 
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
-import com.qzero.bt.data.ServerStatus;
+import com.qzero.bt.common.authorize.data.ServerStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

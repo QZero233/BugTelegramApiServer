@@ -2,10 +2,10 @@ package com.qzero.bt.admin.service;
 
 import com.qzero.bt.admin.data.UserInfoForAdmin;
 import com.qzero.bt.common.exception.ResponsiveException;
-import com.qzero.bt.dao.AuthorizeInfoDao;
-import com.qzero.bt.dao.UserInfoDao;
-import com.qzero.bt.data.AuthorizeInfoEntity;
-import com.qzero.bt.data.UserInfoEntity;
+import com.qzero.bt.common.authorize.dao.AuthorizeInfoDao;
+import com.qzero.bt.common.authorize.dao.UserInfoDao;
+import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
+import com.qzero.bt.common.authorize.data.UserInfoEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

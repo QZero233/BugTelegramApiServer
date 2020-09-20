@@ -1,6 +1,6 @@
 package com.qzero.bt.common.permission;
 
-import com.qzero.bt.data.TokenEntity;
+import com.qzero.bt.common.authorize.data.TokenEntity;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

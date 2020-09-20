@@ -1,6 +1,6 @@
 package com.qzero.bt.admin.data;
 
-import com.qzero.bt.data.UserInfoEntity;
+import com.qzero.bt.common.authorize.data.UserInfoEntity;
 
 public class UserInfoForAdmin {
 

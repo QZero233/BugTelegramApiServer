@@ -2,13 +2,14 @@ package com.qzero.bt.authorize.controller;
 
 import com.qzero.bt.authorize.service.AuthorizeService;
 import com.qzero.bt.common.exception.ResponsiveException;
+import com.qzero.bt.common.permission.DisablePermissionCheck;
 import com.qzero.bt.common.permission.PermissionCheck;
 import com.qzero.bt.common.permission.PermissionNameList;
 import com.qzero.bt.common.view.ActionResult;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
-import com.qzero.bt.data.AuthorizeInfoEntity;
-import com.qzero.bt.data.TokenEntity;
+import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
+import com.qzero.bt.common.authorize.data.TokenEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,7 @@ public class AuthorizeController {
     @Autowired
     private IPackedObjectFactory packedObjectFactory;
 
+    @DisablePermissionCheck
     @PostMapping("/login")
     public PackedObject login(@RequestBody PackedObject parameter) throws ResponsiveException {
         TokenEntity tokenEntityForLogin=parameter.parseObject("tokenPreset",TokenEntity.class);

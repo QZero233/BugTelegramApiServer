@@ -1,8 +1,8 @@
 package com.qzero.bt.common.permission;
 
-import com.qzero.bt.dao.UserInfoDao;
-import com.qzero.bt.data.TokenEntity;
-import com.qzero.bt.data.UserInfoEntity;
+import com.qzero.bt.common.authorize.dao.UserInfoDao;
+import com.qzero.bt.common.authorize.data.TokenEntity;
+import com.qzero.bt.common.authorize.data.UserInfoEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
