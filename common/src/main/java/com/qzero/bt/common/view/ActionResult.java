@@ -1,5 +1,6 @@
 package com.qzero.bt.common.view;
 
+@ParameterObject(name = "actionResult")
 public class ActionResult {
 
     private boolean succeeded;

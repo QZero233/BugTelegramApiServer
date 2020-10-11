@@ -8,6 +8,7 @@
         <module>server</module>
         <module>common</module>
         <module>message</module>
+        <module>admin</module>
     </modules>
 
     <modelVersion>4.0.0</modelVersion>

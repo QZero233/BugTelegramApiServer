@@ -1,5 +1,8 @@
 package com.qzero.bt.message.notice;
 
+import com.qzero.bt.common.view.ParameterObject;
+
+@ParameterObject(name = "NoticeConnectInfo")
 public class NoticeConnectInfo {
 
     private int port;

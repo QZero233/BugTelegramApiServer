@@ -1,8 +1,11 @@
 package com.qzero.bt.message.data.session;
 
+import com.qzero.bt.common.view.ParameterObject;
+
 import javax.persistence.*;
 import java.util.List;
 
+@ParameterObject(name = "ChatSession")
 @Table(name = "chat_session")
 @Entity
 public class ChatSession {

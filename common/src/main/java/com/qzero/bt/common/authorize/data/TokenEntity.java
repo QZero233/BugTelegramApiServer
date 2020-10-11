@@ -1,9 +1,12 @@
 package com.qzero.bt.common.authorize.data;
 
+import com.qzero.bt.common.view.ParameterObject;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+@ParameterObject(name = "token")
 @Entity
 @Table(name = "tokens")
 public class TokenEntity {

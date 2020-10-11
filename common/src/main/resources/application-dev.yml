@@ -6,4 +6,6 @@ spring:
     username: nasa
     url: jdbc:mysql://localhost:3306/nasa?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf8
     password: 123456
+  jpa:
+    show-sql: true
 debug: true

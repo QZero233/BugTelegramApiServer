@@ -57,7 +57,7 @@ public class PermissionCheckInterceptor implements HandlerInterceptor {
         if(tokenEntity==null)
             throw new ResourceDoesNotExistException(ErrorCodeList.CODE_ILLEGAL_TOKEN,"Token does not exist");
 
-        if(tokenEntity.getOwnerUserName().equals(ownerUserName))
+        if(!tokenEntity.getOwnerUserName().equals(ownerUserName))
             throw new PermissionDeniedException(ErrorCodeList.CODE_ILLEGAL_TOKEN,"Token owner name does not match");
 
         if(tokenEntity.getEndTime()>0 && tokenEntity.getEndTime()<System.currentTimeMillis()){

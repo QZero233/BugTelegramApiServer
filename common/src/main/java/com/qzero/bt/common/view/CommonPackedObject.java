@@ -47,6 +47,7 @@ public class CommonPackedObject implements PackedObject {
         try {
             ObjectMapper mapper=new ObjectMapper();
             mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
             String json=mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
             object.put(specialName,json);
         } catch (JsonProcessingException e) {
@@ -90,6 +91,10 @@ public class CommonPackedObject implements PackedObject {
     }
 
     public static String getDefaultName(Class cls){
+        ParameterObject parameterObjectAnnotation= (ParameterObject) cls.getDeclaredAnnotation(ParameterObject.class);
+        if(parameterObjectAnnotation!=null && !parameterObjectAnnotation.name().equals(""))
+            return parameterObjectAnnotation.name();
+
         return cls.getSimpleName();
     }
 

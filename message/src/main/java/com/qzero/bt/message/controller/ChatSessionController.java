@@ -44,6 +44,7 @@ public class ChatSessionController {
         sessionService.createSession(chatSession);
 
         noticeService.addNotice(NoticeDataType.TYPE_SESSION,userName,sessionId);
+        noticeService.remindTargetUser(userName);
 
         PackedObject returnValue=packedObjectFactory.getReturnValue(true,null);
         returnValue.addObject(chatSession);
@@ -71,7 +72,7 @@ public class ChatSessionController {
                                       @PathVariable("session_id")String sessionId,
                                       @RequestBody PackedObject parameter) throws ResponsiveException {
 //TODO CHECK IF THE USER EXISTS
-        if(!sessionService.isOperator(userName,sessionId))
+        if(!sessionService.isOperator(sessionId,userName))
             throw new ResponsiveException(ErrorCodeList.CODE_PERMISSION_DENIED,"You are not one of the operators");
 
         ChatMember chatMember=parameter.parseObject(ChatMember.class);
@@ -93,14 +94,28 @@ public class ChatSessionController {
                                          @PathVariable("session_id")String sessionId,
                                          @PathVariable("member_user_name")String memberUserName) throws ResponsiveException {
 
-        if(!sessionService.isOperator(userName,sessionId))
+        if(!sessionService.isOperator(sessionId,userName))
             throw new ResponsiveException(ErrorCodeList.CODE_PERMISSION_DENIED,"You are not one of the operators");
 
         sessionService.removeChatMember(new ChatMember(sessionId,memberUserName,0));
 
         noticeService.addDeleteNotice(NoticeDataType.TYPE_SESSION,memberUserName,sessionId);
+        noticeService.remindTargetUser(memberUserName);
+
+        List<String> memberNames=sessionService.findAllMemberNames(sessionId);
+        noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_SESSION,memberNames,sessionId,null);
+
 
         return packedObjectFactory.getReturnValue(true,null);
+    }
+
+    @GetMapping("/")
+    public PackedObject getAllSessions(@RequestHeader("owner_user_name") String userName){
+        List<ChatSession> chatSessionList=sessionService.getAllSessions(userName);
+
+        PackedObject result=packedObjectFactory.getReturnValue(true,null);
+        result.addObject("ChatSessionList",chatSessionList);
+        return result;
     }
 
 }

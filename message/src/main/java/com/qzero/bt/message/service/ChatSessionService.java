@@ -6,10 +6,14 @@ import com.qzero.bt.message.data.session.ChatMemberDao;
 import com.qzero.bt.message.data.session.ChatSessionDao;
 import com.qzero.bt.message.data.session.ChatMember;
 import com.qzero.bt.message.data.session.ChatSession;
+import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,6 +23,8 @@ public class ChatSessionService {
     public static final int LEVEL_NORMAL=0;
     public static final int LEVEL_OPERATOR=1;
     public static final int LEVEL_OWNER=2;
+
+    private Logger log= LoggerFactory.getLogger(getClass());
 
     @Autowired
     private ChatSessionDao sessionRepository;
@@ -57,7 +63,7 @@ public class ChatSessionService {
     }
 
     public boolean isOperator(String sessionId,String userName){
-        return memberRepository.existsBySessionIdAndUserNameAndLevelIsAfter(sessionId,userName,LEVEL_OPERATOR);
+        return memberRepository.existsBySessionIdAndUserNameAndLevelIsGreaterThanEqual(sessionId,userName,LEVEL_OPERATOR);
     }
 
     public List<ChatMember> findAllMembers(String sessionId){
@@ -66,6 +72,19 @@ public class ChatSessionService {
 
     public List<String> findAllMemberNames(String sessionId){
         return memberRepository.findAllNameBySessionId(sessionId);
+    }
+
+    public List<ChatSession> getAllSessions(String userName){
+        List<String> sessionIdList=memberRepository.findAllSessionIdByName(userName);
+
+        List<ChatSession> result=new ArrayList<>();
+        for(String sessionId:sessionIdList){
+            ChatSession session=sessionRepository.getOne(sessionId);
+            session= (ChatSession) Hibernate.unproxy(session);
+            result.add(session);
+        }
+
+        return result;
     }
 
 }
