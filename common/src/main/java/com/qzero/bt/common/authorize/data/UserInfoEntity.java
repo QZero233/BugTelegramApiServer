@@ -1,9 +1,12 @@
 package com.qzero.bt.common.authorize.data;
 
+import com.qzero.bt.common.view.ParameterObject;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "userInfo")
+@ParameterObject(name = "UserInfo")
 public class UserInfoEntity {
 
     public static final int STATUS_OFFLINE=0;

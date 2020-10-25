@@ -1,5 +1,6 @@
 package com.qzero.bt.message.service;
 
+import com.qzero.bt.message.data.session.ChatMemberDao;
 import com.qzero.bt.message.data.session.ChatSessionDao;
 import com.qzero.bt.message.data.message.MessageDao;
 import com.qzero.bt.message.data.message.entity.ChatMessage;
@@ -7,16 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 public class MessageService {
 
     @Autowired
     private MessageDao messageDao;
-
-
-    @Autowired
-    private ChatSessionDao sessionDao;
 
     public void saveMessage(ChatMessage chatMessage) throws Exception {
         messageDao.save(chatMessage);
@@ -34,6 +33,10 @@ public class MessageService {
         ChatMessage message=messageDao.getOne(messageId);
         message.setMessageStatus(newStatus);
         messageDao.save(message);
+    }
+
+    public List<ChatMessage> getAllMessages(String sessionId) throws Exception {
+        return messageDao.getMessagesBySessionId(sessionId);
     }
 
 }

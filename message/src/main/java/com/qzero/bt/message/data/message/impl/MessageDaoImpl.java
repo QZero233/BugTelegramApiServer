@@ -7,6 +7,8 @@ import com.qzero.bt.message.data.message.entity.ChatMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class MessageDaoImpl implements MessageDao {
 
@@ -34,5 +36,15 @@ public class MessageDaoImpl implements MessageDao {
     public void deleteById(String id) throws Exception {
         repository.deleteById(id);
         contentManager.deleteMessageContent(id);
+    }
+
+    @Override
+    public List<ChatMessage> getMessagesBySessionId(String sessionId) throws Exception {
+        List<ChatMessage> messageList=repository.findBySessionId(sessionId);
+        for(ChatMessage message:messageList){
+            byte[] content=contentManager.getMessageContent(message.getMessageId());
+            message.setContent(content);
+        }
+        return messageList;
     }
 }

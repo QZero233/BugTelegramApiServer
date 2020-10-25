@@ -47,6 +47,7 @@ public class MessageController {
         ChatMessage message=parameter.parseObject(ChatMessage.class);
         message.setMessageId(UUIDUtils.getRandomUUID());
         message.setSenderUserName(userName);
+        message.setSendTime(System.currentTimeMillis());
         messageService.saveMessage(message);
 
         List<String> memberNames=sessionService.findAllMemberNames(message.getSessionId());
@@ -82,6 +83,17 @@ public class MessageController {
         noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_MESSAGE,memberNames,message.getMessageId(),null);
 
         return packedObjectFactory.getReturnValue(true,null);
+    }
+
+    @GetMapping("/")
+    public PackedObject getAllMessages(@RequestHeader("owner_user_name") String userName,
+                                       @RequestParam("session_id") String sessionId) throws Exception {
+
+        List<ChatMessage> messageList=messageService.getAllMessages(sessionId);
+        PackedObject returnValue=packedObjectFactory.getReturnValue(true,null);
+        returnValue.addObject("messageList",messageList);
+        return returnValue;
+
     }
 
 }

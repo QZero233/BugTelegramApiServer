@@ -78,6 +78,7 @@ public class AccountModifyController {
                                        @RequestBody PackedObject parameter){
         UserInfoEntity userInfoEntity=parameter.parseObject(UserInfoEntity.class);
 
+        //FIXME GROUP LEVEL CAN NOT BE UPDATED
         service.updateUserInfo(userName,userInfoEntity);
 
         return packedObjectFactory.getReturnValue(true,null);
