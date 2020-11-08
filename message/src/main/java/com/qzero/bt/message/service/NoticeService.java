@@ -7,11 +7,13 @@ import com.qzero.bt.message.notice.NoticeRemindUtils;
 import com.qzero.bt.common.utils.UUIDUtils;
 import com.qzero.bt.common.utils.UriUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Async
 @Service
 @Transactional
 public class NoticeService {
@@ -24,13 +26,21 @@ public class NoticeService {
     }
 
     public void deleteNotice(String noticeId){
-        noticeDao.deleteById(noticeId);
+        if(noticeDao.existsById(noticeId))
+            noticeDao.deleteById(noticeId);
     }
 
     public void addNotice(DataNotice notice){
         //Delete previous notice pointing at the same resource
-        noticeDao.deleteByTargetUserNameAndDataUri(notice.getTargetUserName(),notice.getDataUri());
-        noticeDao.save(notice);
+        DataNotice existNotice=noticeDao.findByTargetUserNameAndDataUri(notice.getTargetUserName(),notice.getDataUri());
+        if(existNotice==null){
+            noticeDao.save(notice);
+        }else{
+            existNotice.setGenerateTime(notice.getGenerateTime());
+            noticeDao.save(existNotice);
+        }
+        //noticeDao.deleteByTargetUserNameAndDataUri(notice.getTargetUserName(),notice.getDataUri());
+
     }
 
     public void remindTargetUser(String userName){

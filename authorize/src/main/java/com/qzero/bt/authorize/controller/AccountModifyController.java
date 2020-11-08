@@ -1,8 +1,10 @@
 package com.qzero.bt.authorize.controller;
 
 import com.qzero.bt.authorize.service.AccountModifyService;
+import com.qzero.bt.common.exception.ErrorCodeList;
 import com.qzero.bt.common.permission.PermissionCheck;
 import com.qzero.bt.common.permission.PermissionNameList;
+import com.qzero.bt.common.view.ActionResult;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
@@ -61,17 +63,6 @@ public class AccountModifyController {
         return packedObjectFactory.getReturnValue(true,null);
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_READ_USER_INFO)
-        @GetMapping("/user_info")
-    public PackedObject getUserInfo(@RequestHeader("owner_user_name") String userName){
-        UserInfoEntity userInfoEntity=service.getUserInfo(userName);
-
-        PackedObject result=packedObjectFactory.getReturnValue(true,null);
-        result.addObject(userInfoEntity);
-
-        return result;
-    }
-
     @PermissionCheck(PermissionNameList.PERMISSION_UPDATE_USER_INFO)
     @PutMapping("/user_info")
     public PackedObject updateUserInfo(@RequestHeader("owner_user_name") String userName,
@@ -82,6 +73,18 @@ public class AccountModifyController {
         service.updateUserInfo(userName,userInfoEntity);
 
         return packedObjectFactory.getReturnValue(true,null);
+    }
+
+    @GetMapping("/user_info/{user_name}")
+    public PackedObject getOtherUserInfo(@PathVariable("user_name")String userName){
+        UserInfoEntity userInfoEntity=service.getUserInfo(userName);
+        if(userInfoEntity==null)
+            return packedObjectFactory.getReturnValue(new ActionResult(false, ErrorCodeList.CODE_MISSING_RESOURCE,""));
+
+        PackedObject result=packedObjectFactory.getReturnValue(true,null);
+        result.addObject(userInfoEntity);
+
+        return result;
     }
 
 }

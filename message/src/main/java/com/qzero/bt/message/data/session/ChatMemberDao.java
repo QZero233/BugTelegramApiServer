@@ -23,4 +23,6 @@ public interface ChatMemberDao extends JpaRepository<ChatMember,Integer> {
     @Query(value = "SELECT sessionId FROM ChatMember WHERE userName=?1")
     List<String> findAllSessionIdByName(String userName);
 
+    ChatMember findBySessionIdAndUserName(String sessionId,String userName);
+
 }

@@ -39,4 +39,8 @@ public class MessageService {
         return messageDao.getMessagesBySessionId(sessionId);
     }
 
+    public void deleteAllMessageBySessionId(String sessionId) throws Exception{
+        messageDao.deleteAllMessagesBySessionId(sessionId);
+    }
+
 }

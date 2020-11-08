@@ -47,4 +47,13 @@ public class MessageDaoImpl implements MessageDao {
         }
         return messageList;
     }
+
+    @Override
+    public void deleteAllMessagesBySessionId(String sessionId) throws Exception {
+        List<ChatMessage> messageList=repository.findBySessionId(sessionId);
+        for(ChatMessage message:messageList){
+            repository.delete(message);
+            contentManager.deleteMessageContent(message.getMessageId());
+        }
+    }
 }

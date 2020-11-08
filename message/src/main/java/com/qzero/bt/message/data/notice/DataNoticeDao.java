@@ -13,5 +13,6 @@ public interface DataNoticeDao extends JpaRepository<DataNotice,String> {
 
     void deleteByTargetUserNameAndDataUri(String targetUserName,String dataUri);
 
+    DataNotice findByTargetUserNameAndDataUri(String targetUserName,String dataUri);
 
 }

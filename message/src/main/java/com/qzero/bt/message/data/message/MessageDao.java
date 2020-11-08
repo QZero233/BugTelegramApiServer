@@ -17,4 +17,6 @@ public interface MessageDao {
 
     List<ChatMessage> getMessagesBySessionId(String sessionId) throws Exception ;
 
+    void deleteAllMessagesBySessionId(String sessionId) throws Exception ;
+
 }

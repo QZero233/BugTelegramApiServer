@@ -9,6 +9,10 @@ import javax.persistence.*;
 @Entity
 public class ChatMember {
 
+    public static final int LEVEL_NORMAL=0;
+    public static final int LEVEL_OPERATOR=1;
+    public static final int LEVEL_OWNER=2;
+
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     @Column(name = "chatMemberId")

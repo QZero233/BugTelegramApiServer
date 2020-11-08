@@ -11,6 +11,6 @@ public class ErrorCodeList {
 
     public static final int CODE_ACCOUNT_FROZEN=-103;
 
-    public static final int CODE_MISSING_RESOURCE=-103;
+    public static final int CODE_MISSING_RESOURCE=-104;
 
 }

@@ -1,5 +1,6 @@
 package com.qzero.bt.message.service;
 
+import com.qzero.bt.common.authorize.dao.UserInfoDao;
 import com.qzero.bt.common.exception.ErrorCodeList;
 import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.message.data.session.ChatMemberDao;
@@ -20,10 +21,6 @@ import java.util.List;
 @Transactional
 public class ChatSessionService {
 
-    public static final int LEVEL_NORMAL=0;
-    public static final int LEVEL_OPERATOR=1;
-    public static final int LEVEL_OWNER=2;
-
     private Logger log= LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -31,6 +28,9 @@ public class ChatSessionService {
 
     @Autowired
     private ChatMemberDao memberRepository;
+
+    @Autowired
+    private UserInfoDao userInfoDao;
 
     public void createSession(ChatSession chatSession){
         sessionRepository.save(chatSession);
@@ -45,6 +45,9 @@ public class ChatSessionService {
     }
 
     public void addChatMember(ChatMember chatMember) throws ResponsiveException {
+        if(userInfoDao.getUserInfo(chatMember.getUserName())==null)
+            throw new ResponsiveException(ErrorCodeList.CODE_MISSING_RESOURCE,"Target user does not exist");
+
         if(!sessionRepository.existsById(chatMember.getSessionId()))
             throw new ResponsiveException(ErrorCodeList.CODE_MISSING_RESOURCE,"ChatSession does not exist");
 
@@ -58,12 +61,23 @@ public class ChatSessionService {
         memberRepository.deleteBySessionIdAndUserName(chatMember.getSessionId(),chatMember.getUserName());
     }
 
+    public void updateChatMember(ChatMember chatMember) throws ResponsiveException {
+        ChatMember origin=memberRepository.findBySessionIdAndUserName(chatMember.getSessionId(),chatMember.getUserName());
+        if(origin==null)
+            throw new ResponsiveException(ErrorCodeList.CODE_MISSING_RESOURCE,"Chat member does not exist");
+
+        if(origin.getLevel()==ChatMember.LEVEL_OWNER && chatMember.getLevel()<ChatMember.LEVEL_OWNER)
+            throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER,"Level can not be less than owner");
+
+        memberRepository.save(chatMember);
+    }
+
     public boolean isMemberIn(String sessionId,String userName){
        return memberRepository.existsBySessionIdAndUserName(sessionId,userName);
     }
 
     public boolean isOperator(String sessionId,String userName){
-        return memberRepository.existsBySessionIdAndUserNameAndLevelIsGreaterThanEqual(sessionId,userName,LEVEL_OPERATOR);
+        return memberRepository.existsBySessionIdAndUserNameAndLevelIsGreaterThanEqual(sessionId,userName,ChatMember.LEVEL_OPERATOR);
     }
 
     public List<ChatMember> findAllMembers(String sessionId){
@@ -85,6 +99,12 @@ public class ChatSessionService {
         }
 
         return result;
+    }
+
+    public void updateSessionInfo(ChatSession session){
+        ChatSession origin=sessionRepository.getOne(session.getSessionId());
+        origin.setSessionName(session.getSessionName());
+        sessionRepository.save(origin);
     }
 
 }
