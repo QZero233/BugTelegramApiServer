@@ -4,7 +4,9 @@ import com.qzero.bt.common.utils.UUIDUtils;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.message.data.message.entity.ChatMessage;
-import com.qzero.bt.message.data.notice.NoticeDataType;
+import com.qzero.bt.message.notice.action.MessageNoticeAction;
+import com.qzero.bt.message.notice.action.NoticeAction;
+import com.qzero.bt.message.notice.action.ParameterBuilder;
 import com.qzero.bt.message.service.ChatSessionService;
 import com.qzero.bt.message.service.MessageService;
 import com.qzero.bt.message.service.NoticeService;
@@ -51,18 +53,22 @@ public class MessageController {
         messageService.saveMessage(message);
 
         List<String> memberNames=sessionService.findAllMemberNames(message.getSessionId());
-        noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_MESSAGE,memberNames,message.getMessageId(),null);
+
+        MessageNoticeAction noticeAction=new MessageNoticeAction(MessageNoticeAction.ActionType.ADD_MESSAGE,message.getMessageId(),null,userName);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
         return packedObjectFactory.getReturnValue(true,message.getMessageId());
     }
 
     @DeleteMapping("/{message_id}")
-    public PackedObject deleteMessage(@PathVariable("message_id") String messageId) throws Exception {
+    public PackedObject deleteMessage(@PathVariable("message_id") String messageId,
+                                      @RequestHeader("owner_user_name") String userName) throws Exception {
         ChatMessage message=messageService.getMessage(messageId);
         //TODO CHECK PERMISSION
 
         List<String> memberNames=sessionService.findAllMemberNames(message.getSessionId());
-        noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_MESSAGE,memberNames,message.getMessageId(),"deleted");
+        MessageNoticeAction noticeAction=new MessageNoticeAction(MessageNoticeAction.ActionType.DELETE_MESSAGE,message.getMessageId(),null,userName);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
         messageService.deleteMessage(messageId);
 
@@ -71,16 +77,17 @@ public class MessageController {
 
     @PutMapping("/{message_id}/status")
     public PackedObject updateMessageStatus(@PathVariable("message_id") String messageId,
-                                            @RequestBody PackedObject parameter) throws Exception {
+                                            @RequestHeader("owner_user_name") String userName,
+                                            @RequestParam("status")String status) throws Exception {
         ChatMessage message=messageService.getMessage(messageId);
         //TODO CHECK PERMISSION
 
-        String newStatus=parameter.parseObject("messageStatus",String.class);
-
-        messageService.updateMessageStatus(messageId,newStatus);
+        messageService.updateMessageStatus(messageId,status);
 
         List<String> memberNames=sessionService.findAllMemberNames(message.getSessionId());
-        noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_MESSAGE,memberNames,message.getMessageId(),null);
+        MessageNoticeAction noticeAction=new MessageNoticeAction(MessageNoticeAction.ActionType.UPDATE_MESSAGE_STATUS,message.getMessageId(),
+                new ParameterBuilder().addParameter("newStatus",status).build(),userName);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
         return packedObjectFactory.getReturnValue(true,null);
     }

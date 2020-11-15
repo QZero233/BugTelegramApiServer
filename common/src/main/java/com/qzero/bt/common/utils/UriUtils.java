@@ -10,9 +10,9 @@ public class UriUtils {
 
     private static Logger log= LoggerFactory.getLogger(UriUtils.class);
 
-    public static String generateUri(String dataType,String dataId,String detail){
+    public static String generateUri(String schema,String user,String host,String query,String fragment){
         try {
-            URI uri=new URI(dataType,dataId,null,null,detail);
+            URI uri=new URI(schema,user,host,0,null,query,fragment);
             return uri.toString();
         } catch (URISyntaxException e) {
             log.error("Generate uri failed",e);

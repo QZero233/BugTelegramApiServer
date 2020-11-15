@@ -16,8 +16,8 @@ public class DataNotice {
     private String targetUserName;
 
     @Basic
-    @Column(name = "dataUri")
-    private String dataUri;
+    @Column(name = "actionDetail")
+    private String actionDetail;
 
     @Basic
     @Column(name = "generateTime")
@@ -42,12 +42,12 @@ public class DataNotice {
         this.targetUserName = targetUserName;
     }
 
-    public String getDataUri() {
-        return dataUri;
+    public String getActionDetail() {
+        return actionDetail;
     }
 
-    public void setDataUri(String dataUri) {
-        this.dataUri = dataUri;
+    public void setActionDetail(String actionDetail) {
+        this.actionDetail = actionDetail;
     }
 
     public Long getGenerateTime() {
@@ -63,7 +63,7 @@ public class DataNotice {
         return "DataNotice{" +
                 "noticeId='" + noticeId + '\'' +
                 ", targetUserName='" + targetUserName + '\'' +
-                ", dataUri='" + dataUri + '\'' +
+                ", actionDetail='" + actionDetail + '\'' +
                 ", generateTime=" + generateTime +
                 '}';
     }

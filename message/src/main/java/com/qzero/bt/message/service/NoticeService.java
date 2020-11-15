@@ -1,11 +1,12 @@
 package com.qzero.bt.message.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qzero.bt.common.utils.UUIDUtils;
 import com.qzero.bt.message.data.notice.DataNotice;
 import com.qzero.bt.message.data.notice.DataNoticeDao;
-import com.qzero.bt.message.data.notice.NoticeDataType;
 import com.qzero.bt.message.notice.NoticeRemindUtils;
-import com.qzero.bt.common.utils.UUIDUtils;
-import com.qzero.bt.common.utils.UriUtils;
+import com.qzero.bt.message.notice.action.NoticeAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,9 @@ import java.util.List;
 public class NoticeService {
 
     @Autowired
+    private ObjectMapper mapper;
+
+    @Autowired
     private DataNoticeDao noticeDao;
 
     public List<DataNotice> getNoticeListByUser(String targetUserName){
@@ -30,50 +34,34 @@ public class NoticeService {
             noticeDao.deleteById(noticeId);
     }
 
-    public void addNotice(DataNotice notice){
-        //Delete previous notice pointing at the same resource
-        DataNotice existNotice=noticeDao.findByTargetUserNameAndDataUri(notice.getTargetUserName(),notice.getDataUri());
-        if(existNotice==null){
-            noticeDao.save(notice);
-        }else{
-            existNotice.setGenerateTime(notice.getGenerateTime());
-            noticeDao.save(existNotice);
-        }
-        //noticeDao.deleteByTargetUserNameAndDataUri(notice.getTargetUserName(),notice.getDataUri());
+    public void addNotice(String targetUserName,NoticeAction action) throws JsonProcessingException {
+        String actionInString=mapper.writeValueAsString(action);
+        DataNotice notice=new DataNotice();
 
+        notice.setGenerateTime(System.currentTimeMillis());
+        notice.setActionDetail(actionInString);
+        notice.setNoticeId(UUIDUtils.getRandomUUID());
+        notice.setTargetUserName(targetUserName);
+
+        noticeDao.save(notice);
     }
 
     public void remindTargetUser(String userName){
         NoticeRemindUtils.remindUser(userName);
     }
 
-    public void addNotice(NoticeDataType dataType, String targetUserName, String dataId, String dataDetail){
-        DataNotice notice=new DataNotice();
+    public void addNoticeForGroupOfUsersAndRemind(List<String> userNameList,NoticeAction action) throws JsonProcessingException {
+        String actionInString=mapper.writeValueAsString(action);
+        for(String userName:userNameList){
+            DataNotice notice=new DataNotice();
 
-        String uri= UriUtils.generateUri(dataType.getTypeInString(),dataId,dataDetail);
-        notice.setDataUri(uri);
+            notice.setGenerateTime(System.currentTimeMillis());
+            notice.setActionDetail(actionInString);
+            notice.setNoticeId(UUIDUtils.getRandomUUID());
+            notice.setTargetUserName(userName);
 
-        notice.setNoticeId(UUIDUtils.getRandomUUID());
-
-        notice.setGenerateTime(System.currentTimeMillis());
-
-        notice.setTargetUserName(targetUserName);
-
-        addNotice(notice);
-    }
-
-    public void addNotice(NoticeDataType dataType,String targetUserName,String dataId){
-        addNotice(dataType,targetUserName,dataId,null);
-    }
-
-    public void addDeleteNotice(NoticeDataType dataType,String targetUserName,String dataId){
-        addNotice(dataType,targetUserName,dataId,"deleted");
-    }
-
-    public void addNoticeToGroupOfUserAndRemind(NoticeDataType dataType,List<String> targetUserNames,String dataId,String dataDetail) {
-        for (String userName : targetUserNames) {
-            addNotice(dataType, userName, dataId, dataDetail);
-            remindTargetUser(userName);
+            noticeDao.save(notice);
+            NoticeRemindUtils.remindUser(userName);
         }
     }
 

@@ -1,7 +1,10 @@
 package com.qzero.bt.message.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.qzero.bt.common.exception.ErrorCodeList;
 import com.qzero.bt.common.exception.ResponsiveException;
+import com.qzero.bt.message.notice.action.ParameterBuilder;
+import com.qzero.bt.message.notice.action.SessionNoticeAction;
 import com.qzero.bt.message.service.MessageService;
 import com.qzero.bt.message.service.NoticeService;
 import com.qzero.bt.common.utils.UUIDUtils;
@@ -10,7 +13,6 @@ import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.message.data.session.ChatMember;
 import com.qzero.bt.message.data.session.ChatSession;
 import com.qzero.bt.message.service.ChatSessionService;
-import com.qzero.bt.message.data.notice.NoticeDataType;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +38,7 @@ public class ChatSessionController {
 
     @PostMapping("/")
     public PackedObject createChatSession(@RequestHeader("owner_user_name") String userName,
-                                          @RequestBody PackedObject parameter){
+                                          @RequestBody PackedObject parameter) throws JsonProcessingException {
 
         ChatSession chatSession =parameter.parseObject(ChatSession.class);
 
@@ -47,7 +49,7 @@ public class ChatSessionController {
 
         sessionService.createSession(chatSession);
 
-        noticeService.addNotice(NoticeDataType.TYPE_SESSION,userName,sessionId);
+        noticeService.addNotice(userName,new SessionNoticeAction(SessionNoticeAction.ActionType.NEW_SESSION,sessionId,null,userName));
         noticeService.remindTargetUser(userName);
 
         PackedObject returnValue=packedObjectFactory.getReturnValue(true,null);
@@ -71,31 +73,32 @@ public class ChatSessionController {
         return returnValue;
     }
 
-    @PutMapping("/{session_id}/members")
+    @PostMapping("/{session_id}/members")
     public PackedObject addChatMember(@RequestHeader("owner_user_name") String userName,
                                       @PathVariable("session_id")String sessionId,
-                                      @RequestBody PackedObject parameter) throws ResponsiveException {
+                                      @RequestParam("member_user_name")String memberUserName) throws ResponsiveException, JsonProcessingException {
         if(!sessionService.isOperator(sessionId,userName))
             throw new ResponsiveException(ErrorCodeList.CODE_PERMISSION_DENIED,"You are not one of the operators");
 
-        ChatMember chatMember=parameter.parseObject(ChatMember.class);
+        ChatMember chatMember=new ChatMember();
         chatMember.setSessionId(sessionId);
-
-        if(chatMember.getLevel()>=ChatMember.LEVEL_OWNER)
-            throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER,"Level can not greater than operator");
+        chatMember.setLevel(ChatMember.LEVEL_NORMAL);
+        chatMember.setUserName(memberUserName);
 
         sessionService.addChatMember(chatMember);
 
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
-        noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_SESSION,memberNames,sessionId,null);
+        SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.NEW_MEMBER,sessionId,
+                new ParameterBuilder().addParameter("memberUserName",memberUserName).build(),userName);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
         return packedObjectFactory.getReturnValue(true,null);
     }
 
-    @DeleteMapping("/{session_id}/members/{member_user_name}")
+    @DeleteMapping("/{session_id}/members")
     public PackedObject removeChatMember(@RequestHeader("owner_user_name") String userName,
                                          @PathVariable("session_id")String sessionId,
-                                         @PathVariable("member_user_name")String memberUserName) throws ResponsiveException {
+                                         @RequestParam("member_user_name")String memberUserName) throws ResponsiveException, JsonProcessingException {
 
         //You can quit a session with this method
         if(!memberUserName.equals(userName) && !sessionService.isOperator(sessionId,userName))
@@ -103,32 +106,38 @@ public class ChatSessionController {
 
         sessionService.removeChatMember(new ChatMember(sessionId,memberUserName,0));
 
-        noticeService.addDeleteNotice(NoticeDataType.TYPE_SESSION,memberUserName,sessionId);
-        noticeService.remindTargetUser(memberUserName);
+        SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.REMOVE_MEMBER,sessionId,
+                new ParameterBuilder().addParameter("memberUserName",memberUserName).build(),userName);
 
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
-        noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_SESSION,memberNames,sessionId,null);
+        memberNames.add(memberUserName);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
 
         return packedObjectFactory.getReturnValue(true,null);
     }
 
 
-    @PutMapping("/{session_id}/members/{member_user_name}")
-    public PackedObject updateChatMember(@RequestHeader("owner_user_name") String userName,
+    @PutMapping("/{session_id}/members/{member_user_name}/level")
+    public PackedObject updateChatMemberLevel(@RequestHeader("owner_user_name") String userName,
                                          @PathVariable("session_id")String sessionId,
                                          @PathVariable("member_user_name")String memberUserName,
-                                         @RequestBody PackedObject parameter) throws ResponsiveException {
-
-        //TODO NOTICE
-        ChatMember chatMember=parameter.parseObject(ChatMember.class);
-        chatMember.setSessionId(sessionId);
+                                         @RequestParam("level") int level) throws ResponsiveException, JsonProcessingException {
+        ChatMember chatMember=new ChatMember();
         chatMember.setUserName(memberUserName);
+        chatMember.setLevel(level);
+        chatMember.setSessionId(sessionId);
 
-        if(chatMember.getLevel()>=ChatMember.LEVEL_OWNER)
-            throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER,"Level can not greater than operator");
+        sessionService.updateChatMemberLevel(chatMember);
 
-        sessionService.updateChatMember(chatMember);
+        SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.UPDATE_MEMBER_LEVEL,sessionId,
+                new ParameterBuilder().addParameter("memberUserName",memberUserName).addParameter("level",String.valueOf(level)).build(),
+                userName);
+
+        List<String> memberNames=sessionService.findAllMemberNames(sessionId);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
+
+
         return packedObjectFactory.getReturnValue(true,null);
     }
 
@@ -141,7 +150,9 @@ public class ChatSessionController {
         messageService.deleteAllMessageBySessionId(sessionId);
 
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
-        noticeService.addNoticeToGroupOfUserAndRemind(NoticeDataType.TYPE_SESSION,memberNames,sessionId,"deleted");
+        SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.DELETE_SESSION,sessionId,
+                null,userName);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
         return packedObjectFactory.getReturnValue(true,null);
     }
@@ -156,15 +167,21 @@ public class ChatSessionController {
         return result;
     }
 
-    @PutMapping("/{session_id}")
-    public PackedObject updateSessionInfo(@RequestHeader("owner_user_name") String userName,
+    @PutMapping("/{session_id}/name")
+    public PackedObject updateSessionName(@RequestHeader("owner_user_name") String userName,
                                       @PathVariable("session_id")String sessionId,
-                                      @RequestBody PackedObject parameter){
+                                      @RequestParam("name")String name) throws JsonProcessingException {
 
-        //TODO NOTICE
-        ChatSession session=parameter.parseObject(ChatSession.class);
+        ChatSession session=new ChatSession();
         session.setSessionId(sessionId);
-        sessionService.updateSessionInfo(session);
+        session.setSessionName(name);
+        sessionService.updateSessionName(session);
+
+        SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.UPDATE_SESSION_NAME,sessionId,
+                new ParameterBuilder().addParameter("name",name).build(),userName);
+        List<String> memberNames=sessionService.findAllMemberNames(sessionId);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
+
         return packedObjectFactory.getReturnValue(true,null);
     }
 

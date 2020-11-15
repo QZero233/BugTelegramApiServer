@@ -4,6 +4,7 @@ import com.qzero.bt.common.view.ParameterObject;
 
 import javax.persistence.*;
 
+
 @ParameterObject(name = "ChatMember")
 @Table(name = "chat_members")
 @Entity
@@ -14,7 +15,7 @@ public class ChatMember {
     public static final int LEVEL_OWNER=2;
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "chatMemberId")
     private int chatMemberId;
 

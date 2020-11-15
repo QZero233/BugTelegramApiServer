@@ -61,7 +61,7 @@ public class ChatSessionService {
         memberRepository.deleteBySessionIdAndUserName(chatMember.getSessionId(),chatMember.getUserName());
     }
 
-    public void updateChatMember(ChatMember chatMember) throws ResponsiveException {
+    public void updateChatMemberLevel(ChatMember chatMember) throws ResponsiveException {
         ChatMember origin=memberRepository.findBySessionIdAndUserName(chatMember.getSessionId(),chatMember.getUserName());
         if(origin==null)
             throw new ResponsiveException(ErrorCodeList.CODE_MISSING_RESOURCE,"Chat member does not exist");
@@ -69,7 +69,12 @@ public class ChatSessionService {
         if(origin.getLevel()==ChatMember.LEVEL_OWNER && chatMember.getLevel()<ChatMember.LEVEL_OWNER)
             throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER,"Level can not be less than owner");
 
-        memberRepository.save(chatMember);
+        if(origin.getLevel()<ChatMember.LEVEL_OWNER && chatMember.getLevel()>=ChatMember.LEVEL_OWNER)
+            throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER,"Level can not greater than operator");
+
+        origin.setLevel(chatMember.getLevel());
+
+        memberRepository.save(origin);
     }
 
     public boolean isMemberIn(String sessionId,String userName){
@@ -78,10 +83,6 @@ public class ChatSessionService {
 
     public boolean isOperator(String sessionId,String userName){
         return memberRepository.existsBySessionIdAndUserNameAndLevelIsGreaterThanEqual(sessionId,userName,ChatMember.LEVEL_OPERATOR);
-    }
-
-    public List<ChatMember> findAllMembers(String sessionId){
-        return memberRepository.findAllBySessionId(sessionId);
     }
 
     public List<String> findAllMemberNames(String sessionId){
@@ -101,7 +102,7 @@ public class ChatSessionService {
         return result;
     }
 
-    public void updateSessionInfo(ChatSession session){
+    public void updateSessionName(ChatSession session){
         ChatSession origin=sessionRepository.getOne(session.getSessionId());
         origin.setSessionName(session.getSessionName());
         sessionRepository.save(origin);

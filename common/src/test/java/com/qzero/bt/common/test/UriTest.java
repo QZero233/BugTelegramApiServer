@@ -10,9 +10,4 @@ public class UriTest {
 
     private Logger log= LoggerFactory.getLogger(getClass());
 
-    @Test
-    public void testGenerateUri(){
-        log.debug(UriUtils.generateUri("session","id","wdnmd"));
-    }
-
 }
