@@ -3,6 +3,7 @@ package com.qzero.bt.message.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.qzero.bt.common.exception.ErrorCodeList;
 import com.qzero.bt.common.exception.ResponsiveException;
+import com.qzero.bt.message.data.session.ChatSessionParameter;
 import com.qzero.bt.message.notice.action.ParameterBuilder;
 import com.qzero.bt.message.notice.action.SessionNoticeAction;
 import com.qzero.bt.message.service.MessageService;
@@ -167,18 +168,19 @@ public class ChatSessionController {
         return result;
     }
 
-    @PutMapping("/{session_id}/name")
-    public PackedObject updateSessionName(@RequestHeader("owner_user_name") String userName,
+    @PutMapping("/{session_id}/{parameter_name}")
+    public PackedObject updateSessionParameter(@RequestHeader("owner_user_name") String userName,
                                       @PathVariable("session_id")String sessionId,
-                                      @RequestParam("name")String name) throws JsonProcessingException {
+                                      @PathVariable("parameter_name")String parameterName,
+                                      @RequestParam("parameter_value")String parameterValue) throws JsonProcessingException {
 
         ChatSession session=new ChatSession();
         session.setSessionId(sessionId);
-        session.setSessionName(name);
-        sessionService.updateSessionName(session);
+        sessionService.updateSessionParameter(session, parameterName,parameterValue);
 
-        SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.UPDATE_SESSION_NAME,sessionId,
-                new ParameterBuilder().addParameter("name",name).build(),userName);
+        SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.UPDATE_SESSION_PARAMETER,sessionId,
+                new ParameterBuilder().addParameter("parameterName",parameterName).
+                        addParameter("parameterValue",parameterValue).build(),userName);
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
         noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 

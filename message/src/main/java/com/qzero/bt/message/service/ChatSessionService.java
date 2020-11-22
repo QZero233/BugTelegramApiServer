@@ -3,10 +3,7 @@ package com.qzero.bt.message.service;
 import com.qzero.bt.common.authorize.dao.UserInfoDao;
 import com.qzero.bt.common.exception.ErrorCodeList;
 import com.qzero.bt.common.exception.ResponsiveException;
-import com.qzero.bt.message.data.session.ChatMemberDao;
-import com.qzero.bt.message.data.session.ChatSessionDao;
-import com.qzero.bt.message.data.session.ChatMember;
-import com.qzero.bt.message.data.session.ChatSession;
+import com.qzero.bt.message.data.session.*;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +28,9 @@ public class ChatSessionService {
 
     @Autowired
     private UserInfoDao userInfoDao;
+
+    @Autowired
+    private ChatSessionParameterDao parameterDao;
 
     public void createSession(ChatSession chatSession){
         sessionRepository.save(chatSession);
@@ -102,10 +102,9 @@ public class ChatSessionService {
         return result;
     }
 
-    public void updateSessionName(ChatSession session){
-        ChatSession origin=sessionRepository.getOne(session.getSessionId());
-        origin.setSessionName(session.getSessionName());
-        sessionRepository.save(origin);
+    public void updateSessionParameter(ChatSession session,String parameterName,String parameterValue){
+        ChatSessionParameter parameter=parameterDao.findBySessionIdAndAndParameterName(session.getSessionId(),parameterName);
+        parameter.setParameterValue(parameterValue);
+        parameterDao.save(parameter);
     }
-
 }

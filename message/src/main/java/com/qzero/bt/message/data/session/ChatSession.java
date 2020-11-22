@@ -15,21 +15,21 @@ public class ChatSession {
     @Column(name = "sessionId")
     private String sessionId;
 
-    @Basic
-    @Column(name = "sessionName")
-    private String sessionName;
-
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "sessionId")
     private List<ChatMember> chatMembers;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "sessionId")
+    private List<ChatSessionParameter> sessionParameters;
+
     public ChatSession() {
     }
 
-    public ChatSession(String sessionId, String sessionName, List<ChatMember> chatMembers) {
+    public ChatSession(String sessionId, List<ChatMember> chatMembers, List<ChatSessionParameter> sessionParameters) {
         this.sessionId = sessionId;
-        this.sessionName = sessionName;
         this.chatMembers = chatMembers;
+        this.sessionParameters = sessionParameters;
     }
 
     public String getSessionId() {
@@ -40,14 +40,6 @@ public class ChatSession {
         this.sessionId = sessionId;
     }
 
-    public String getSessionName() {
-        return sessionName;
-    }
-
-    public void setSessionName(String sessionName) {
-        this.sessionName = sessionName;
-    }
-
     public List<ChatMember> getChatMembers() {
         return chatMembers;
     }
@@ -56,12 +48,20 @@ public class ChatSession {
         this.chatMembers = chatMembers;
     }
 
+    public List<ChatSessionParameter> getSessionParameters() {
+        return sessionParameters;
+    }
+
+    public void setSessionParameters(List<ChatSessionParameter> sessionParameters) {
+        this.sessionParameters = sessionParameters;
+    }
+
     @Override
     public String toString() {
-        return "ChatSessionEntity{" +
+        return "ChatSession{" +
                 "sessionId='" + sessionId + '\'' +
-                ", sessionName='" + sessionName + '\'' +
                 ", chatMembers=" + chatMembers +
+                ", sessionParameters=" + sessionParameters +
                 '}';
     }
 }
