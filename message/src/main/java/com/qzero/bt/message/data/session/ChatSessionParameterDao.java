@@ -8,4 +8,6 @@ public interface ChatSessionParameterDao extends JpaRepository<ChatSessionParame
 
     ChatSessionParameter findBySessionIdAndAndParameterName(String sessionId,String parameterName);
 
+    boolean existsBySessionIdAndAndParameterName(String sessionId,String parameterName);
+
 }

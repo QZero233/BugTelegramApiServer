@@ -107,4 +107,16 @@ public class ChatSessionService {
         parameter.setParameterValue(parameterValue);
         parameterDao.save(parameter);
     }
+
+    public void deleteSessionParameter(ChatSession session,String parameterName){
+        ChatSessionParameter parameter=parameterDao.findBySessionIdAndAndParameterName(session.getSessionId(),parameterName);
+        parameterDao.delete(parameter);
+    }
+
+    public void addSessionParameter(ChatSession session,String parameterName,String parameterValue){
+        ChatSessionParameter parameter=new ChatSessionParameter(null,session.getSessionId(),parameterName,parameterValue);
+        parameter.setSessionId(session.getSessionId());
+        parameterDao.save(parameter);
+    }
+
 }

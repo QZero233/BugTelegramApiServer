@@ -10,7 +10,9 @@ public class SessionNoticeAction extends NoticeAction {
         REMOVE_MEMBER("removeMember"),
         UPDATE_MEMBER_LEVEL("updateMemberLevel"),
         DELETE_SESSION("deleteSession"),
-        UPDATE_SESSION_PARAMETER("updateSessionParameter");
+        UPDATE_SESSION_PARAMETER("updateSessionParameter"),
+        DELETE_SESSION_PARAMETER("deleteSessionParameter"),
+        ADD_SESSION_PARAMETER("addSessionParameter");
         ActionType(String actionInString) {
             this.actionInString = actionInString;
         }

@@ -12,6 +12,9 @@ public class ChatSessionParameter {
     public static final String NAME_SESSION_NAME="sessionName";
     public static final String NAME_SESSION_TYPE="sessionType";
 
+    public static final String SESSION_TYPE_NORMAL="normal";
+    public static final String SESSION_TYPE_SECRET="secret";
+    public static final String SESSION_TYPE_PERSONAL="personal";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

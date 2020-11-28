@@ -14,6 +14,7 @@ import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.message.data.session.ChatMember;
 import com.qzero.bt.message.data.session.ChatSession;
 import com.qzero.bt.message.service.ChatSessionService;
+import com.qzero.bt.message.session.SessionParameterCheckManager;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +38,9 @@ public class ChatSessionController {
     @Autowired
     private IPackedObjectFactory packedObjectFactory;
 
+    @Autowired
+    private SessionParameterCheckManager parameterCheckManager;
+
     @PostMapping("/")
     public PackedObject createChatSession(@RequestHeader("owner_user_name") String userName,
                                           @RequestBody PackedObject parameter) throws JsonProcessingException {
@@ -49,6 +53,9 @@ public class ChatSessionController {
         chatSession.setChatMembers(Arrays.asList(new ChatMember(sessionId,userName, ChatMember.LEVEL_OWNER)));
 
         sessionService.createSession(chatSession);
+
+        if(!parameterCheckManager.checkCompulsoryParameter(sessionId))
+            throw new IllegalArgumentException("Session parameter is illegal");
 
         noticeService.addNotice(userName,new SessionNoticeAction(SessionNoticeAction.ActionType.NEW_SESSION,sessionId,null,userName));
         noticeService.remindTargetUser(userName);
@@ -172,7 +179,11 @@ public class ChatSessionController {
     public PackedObject updateSessionParameter(@RequestHeader("owner_user_name") String userName,
                                       @PathVariable("session_id")String sessionId,
                                       @PathVariable("parameter_name")String parameterName,
-                                      @RequestParam("parameter_value")String parameterValue) throws JsonProcessingException {
+                                      @RequestParam("parameter_value")String parameterValue) throws JsonProcessingException, IllegalAccessException {
+
+
+        if(!parameterCheckManager.checkOperationPermission(sessionId,parameterName,userName, SessionParameterCheckManager.Operation.OPERATION_UPDATE))
+            throw new IllegalAccessException("You have no access to the parameter named "+parameterName);
 
         ChatSession session=new ChatSession();
         session.setSessionId(sessionId);
@@ -185,6 +196,49 @@ public class ChatSessionController {
         noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
         return packedObjectFactory.getReturnValue(true,null);
+    }
+
+    @DeleteMapping("/{session_id}/{parameter_name}")
+    public PackedObject deleteSessionParameter(@RequestHeader("owner_user_name") String userName,
+                                               @PathVariable("session_id")String sessionId,
+                                               @PathVariable("parameter_name")String parameterName) throws IllegalAccessException, JsonProcessingException {
+
+        if(!parameterCheckManager.checkOperationPermission(sessionId,parameterName,userName, SessionParameterCheckManager.Operation.OPERATION_DELETE))
+            throw new IllegalAccessException("You have no access to the parameter named "+parameterName);
+
+        ChatSession session=new ChatSession();
+        session.setSessionId(sessionId);
+        sessionService.deleteSessionParameter(session,parameterName);
+
+        SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.DELETE_SESSION_PARAMETER,sessionId,
+                new ParameterBuilder().addParameter("parameterName",parameterName).build(),userName);
+        List<String> memberNames=sessionService.findAllMemberNames(sessionId);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
+
+        return packedObjectFactory.getReturnValue(true,null);
+    }
+
+    @PostMapping("/{session_id}/{parameter_name}")
+    public PackedObject addSessionParameter(@RequestHeader("owner_user_name") String userName,
+                                            @PathVariable("session_id")String sessionId,
+                                            @PathVariable("parameter_name")String parameterName,
+                                            @RequestParam("parameter_value")String parameterValue) throws IllegalAccessException, JsonProcessingException {
+
+        if(!parameterCheckManager.checkOperationPermission(sessionId,parameterName,userName, SessionParameterCheckManager.Operation.OPERATION_INSERT))
+            throw new IllegalAccessException("You have no access to the parameter named "+parameterName);
+
+        ChatSession session=new ChatSession();
+        session.setSessionId(sessionId);
+        sessionService.addSessionParameter(session, parameterName,parameterValue);
+
+        SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.ADD_SESSION_PARAMETER,sessionId,
+                new ParameterBuilder().addParameter("parameterName",parameterName).
+                        addParameter("parameterValue",parameterValue).build(),userName);
+        List<String> memberNames=sessionService.findAllMemberNames(sessionId);
+        noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
+
+        return packedObjectFactory.getReturnValue(true,null);
+
     }
 
 }
