@@ -60,7 +60,7 @@ public class ChatSessionController {
         noticeService.addNotice(userName,new SessionNoticeAction(SessionNoticeAction.ActionType.NEW_SESSION,sessionId,null,userName));
         noticeService.remindTargetUser(userName);
 
-        PackedObject returnValue=packedObjectFactory.getReturnValue(true,null);
+        PackedObject returnValue=packedObjectFactory.getReturnValue(true,sessionId);
         returnValue.addObject(chatSession);
         return returnValue;
     }
@@ -154,13 +154,13 @@ public class ChatSessionController {
     public PackedObject deleteSession(@RequestHeader("owner_user_name") String userName,
                                       @PathVariable("session_id")String sessionId) throws Exception {
 
-        sessionService.deleteSession(sessionId);
-        messageService.deleteAllMessageBySessionId(sessionId);
-
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
         SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.DELETE_SESSION,sessionId,
                 null,userName);
         noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
+
+        sessionService.deleteSession(sessionId);
+        messageService.deleteAllMessageBySessionId(sessionId);
 
         return packedObjectFactory.getReturnValue(true,null);
     }

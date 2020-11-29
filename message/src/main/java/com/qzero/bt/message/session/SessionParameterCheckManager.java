@@ -29,6 +29,7 @@ public class SessionParameterCheckManager {
 
     public SessionParameterCheckManager() {
         parameterCheckerMap.put(ChatSessionParameter.SESSION_TYPE_NORMAL,new NormalSessionParameterChecker());
+        parameterCheckerMap.put(ChatSessionParameter.SESSION_TYPE_PERSONAL,new PersonalSessionParameterChecker());
     }
 
     public boolean checkCompulsoryParameter(String sessionId){
