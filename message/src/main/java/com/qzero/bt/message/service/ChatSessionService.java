@@ -4,6 +4,7 @@ import com.qzero.bt.common.authorize.dao.UserInfoDao;
 import com.qzero.bt.common.exception.ErrorCodeList;
 import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.message.data.session.*;
+import com.qzero.bt.message.session.SessionParameterCheckManager;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

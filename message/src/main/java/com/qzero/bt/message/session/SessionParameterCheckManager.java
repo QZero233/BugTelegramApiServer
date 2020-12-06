@@ -1,13 +1,11 @@
 package com.qzero.bt.message.session;
 
-import com.qzero.bt.message.data.session.ChatMember;
-import com.qzero.bt.message.data.session.ChatMemberDao;
-import com.qzero.bt.message.data.session.ChatSessionParameter;
-import com.qzero.bt.message.data.session.ChatSessionParameterDao;
+import com.qzero.bt.message.data.session.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -30,22 +28,32 @@ public class SessionParameterCheckManager {
     public SessionParameterCheckManager() {
         parameterCheckerMap.put(ChatSessionParameter.SESSION_TYPE_NORMAL,new NormalSessionParameterChecker());
         parameterCheckerMap.put(ChatSessionParameter.SESSION_TYPE_PERSONAL,new PersonalSessionParameterChecker());
+        parameterCheckerMap.put(ChatSessionParameter.SESSION_TYPE_SECRET,new SecretSessionParameterChecker());
     }
 
-    public boolean checkCompulsoryParameter(String sessionId){
+    public boolean checkCompulsoryParameter(ChatSession session){
         //Name and type is essential for whatever type of session
-        if(!parameterDao.existsBySessionIdAndAndParameterName(sessionId,ChatSessionParameter.NAME_SESSION_NAME) ||
-        !parameterDao.existsBySessionIdAndAndParameterName(sessionId,ChatSessionParameter.NAME_SESSION_TYPE))
+        Map<String,ChatSessionParameter> parameterMap=new HashMap<>();
+
+        List<ChatSessionParameter> parameterList=session.getSessionParameters();
+        if(parameterList==null || parameterList.isEmpty())
             return false;
 
-        ChatSessionParameter typeParameter=parameterDao.findBySessionIdAndAndParameterName(sessionId,ChatSessionParameter.NAME_SESSION_TYPE);
-        String type=typeParameter.getParameterValue();
+        for(ChatSessionParameter parameter:parameterList){
+            parameterMap.put(parameter.getParameterName(),parameter);
+        }
+
+        if(!parameterMap.containsKey(ChatSessionParameter.NAME_SESSION_NAME) ||
+        !parameterMap.containsKey(ChatSessionParameter.NAME_SESSION_TYPE))
+            return false;
+
+        String type=parameterMap.get(ChatSessionParameter.NAME_SESSION_TYPE).getParameterValue();
 
         SessionParameterChecker checker=parameterCheckerMap.get(type);
         if(checker==null)
             throw new IllegalArgumentException("Unknown session type called "+type);
 
-        return checker.checkCompulsory(sessionId);
+        return checker.checkCompulsory(parameterMap);
     }
 
     public boolean checkOperationPermission(String sessionId, String parameterName,

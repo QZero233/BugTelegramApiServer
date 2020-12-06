@@ -52,10 +52,10 @@ public class ChatSessionController {
 
         chatSession.setChatMembers(Arrays.asList(new ChatMember(sessionId,userName, ChatMember.LEVEL_OWNER)));
 
-        sessionService.createSession(chatSession);
-
-        if(!parameterCheckManager.checkCompulsoryParameter(sessionId))
+        if(!parameterCheckManager.checkCompulsoryParameter(chatSession))
             throw new IllegalArgumentException("Session parameter is illegal");
+
+        sessionService.createSession(chatSession);
 
         noticeService.addNotice(userName,new SessionNoticeAction(SessionNoticeAction.ActionType.NEW_SESSION,sessionId,null,userName));
         noticeService.remindTargetUser(userName);
