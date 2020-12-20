@@ -1,20 +1,22 @@
 package com.qzero.bt.authorize.controller;
 
 import com.qzero.bt.authorize.service.AccountModifyService;
+import com.qzero.bt.common.authorize.data.TokenEntity;
+import com.qzero.bt.common.authorize.data.UserInfoEntity;
 import com.qzero.bt.common.exception.ErrorCodeList;
-import com.qzero.bt.common.permission.PermissionCheck;
-import com.qzero.bt.common.permission.PermissionNameList;
+import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.common.view.ActionResult;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
-import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
-import com.qzero.bt.common.authorize.data.TokenEntity;
-import com.qzero.bt.common.authorize.data.UserInfoEntity;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+//FIXME DID NOT VERIFY TOKEN PERMISSION
 @RestController
 @RequestMapping("/account")
 public class AccountModifyController {
@@ -26,9 +28,8 @@ public class AccountModifyController {
     private IPackedObjectFactory packedObjectFactory;
 
     @GetMapping("/token_list}")
-    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_ACCOUNT)
-    public PackedObject getTokenList(@RequestHeader("owner_user_name") String userName){
-        List<TokenEntity> tokenEntityList=service.getTokenList(userName);
+    public PackedObject getTokenList(@AuthenticationPrincipal UserDetails userDetails){
+        List<TokenEntity> tokenEntityList=service.getTokenList(userDetails.getUsername());
         PackedObject result;
         if(tokenEntityList==null){
             result=packedObjectFactory.getReturnValue(false,null);
@@ -40,37 +41,33 @@ public class AccountModifyController {
         return result;
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_ACCOUNT)
     @PutMapping("/password")
-    public PackedObject changePassword(@RequestHeader("owner_user_name") String userName,@RequestBody PackedObject parameter){
-        AuthorizeInfoEntity authorizeInfoEntity =parameter.parseObject(AuthorizeInfoEntity.class);
-        service.changePassword(userName, authorizeInfoEntity.getPasswordHash());
+    public PackedObject changePassword(@AuthenticationPrincipal UserDetails userDetails,
+                                       @RequestParam("new_password_hash")String newPasswordHash){
+        service.changePassword(userDetails.getUsername(), newPasswordHash);
         return packedObjectFactory.getReturnValue(true,null);
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_ACCOUNT)
     @PutMapping("/account_frozen")
-    public PackedObject freezeAccount(@RequestHeader("owner_user_name") String userName){
-        service.freezeAccount(userName);
-
+    public PackedObject freezeAccount(@AuthenticationPrincipal UserDetails userDetails){
+        service.freezeAccount(userDetails.getUsername());
         return packedObjectFactory.getReturnValue(true,null);
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_ACCOUNT)
     @PutMapping("/account_unfrozen")
-    public PackedObject unfreezeAccount(@RequestHeader("owner_user_name") String userName){
-        service.unfreezeAccount(userName);
+    public PackedObject unfreezeAccount(@AuthenticationPrincipal UserDetails userDetails){
+        service.unfreezeAccount(userDetails.getUsername());
         return packedObjectFactory.getReturnValue(true,null);
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_UPDATE_USER_INFO)
-    @PutMapping("/user_info")
-    public PackedObject updateUserInfo(@RequestHeader("owner_user_name") String userName,
-                                       @RequestBody PackedObject parameter){
-        UserInfoEntity userInfoEntity=parameter.parseObject(UserInfoEntity.class);
-
-        //FIXME GROUP LEVEL CAN NOT BE UPDATED
-        service.updateUserInfo(userName,userInfoEntity);
+    @PutMapping("/user_info/account_status_and_motto")
+    public PackedObject updateAccountStatusAndMotto(@AuthenticationPrincipal UserDetails userDetails,
+                                                    @RequestParam("account_status") int accountStatus,
+                                                    @RequestParam("motto") String motto) throws ResponsiveException {
+        UserInfoEntity userInfoEntity=service.getUserInfo(userDetails.getUsername());
+        userInfoEntity.setAccountStatus(accountStatus);
+        userInfoEntity.setMotto(motto);
+        service.updateUserInfo(userInfoEntity);
 
         return packedObjectFactory.getReturnValue(true,null);
     }
@@ -80,6 +77,8 @@ public class AccountModifyController {
         UserInfoEntity userInfoEntity=service.getUserInfo(userName);
         if(userInfoEntity==null)
             return packedObjectFactory.getReturnValue(new ActionResult(false, ErrorCodeList.CODE_MISSING_RESOURCE,""));
+
+        userInfoEntity= (UserInfoEntity) Hibernate.unproxy(userInfoEntity);
 
         PackedObject result=packedObjectFactory.getReturnValue(true,null);
         result.addObject(userInfoEntity);

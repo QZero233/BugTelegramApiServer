@@ -11,4 +11,6 @@ public interface DataNoticeDao extends JpaRepository<DataNotice,String> {
 
     List<DataNotice> findByTargetUserName(String targetUserName);
 
+    boolean existsByNoticeIdAndTargetUserName(String noticeId,String targetUserName);
+
 }

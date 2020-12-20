@@ -1,7 +1,7 @@
 package com.qzero.bt.authorize.service;
 
-import com.qzero.bt.common.authorize.dao.AuthorizeInfoDao;
-import com.qzero.bt.common.authorize.dao.TokenDao;
+import com.qzero.bt.common.authorize.dao.AuthorizeInfoRepository;
+import com.qzero.bt.common.authorize.dao.TokenRepository;
 import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
 import com.qzero.bt.common.authorize.data.TokenEntity;
 import com.qzero.bt.common.exception.ErrorCodeList;
@@ -16,10 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthorizeService {
 
     @Autowired
-    private AuthorizeInfoDao authorizeInfoDao;
+    private AuthorizeInfoRepository authorizeInfoRepository;
 
     @Autowired
-    private TokenDao tokenDao;
+    private TokenRepository tokenRepository;
 
     /**
      * Login with either password or code
@@ -29,7 +29,7 @@ public class AuthorizeService {
      * @return The token if it succeeded,or it will be null
      */
     public TokenEntity login(AuthorizeInfoEntity authorizeInfoEntity, TokenEntity tokenEntity) throws ResponsiveException {
-        AuthorizeInfoEntity authorizeInfoEntityFromDao=authorizeInfoDao.getAuthorizeInfoByName(authorizeInfoEntity.getUserName());
+        AuthorizeInfoEntity authorizeInfoEntityFromDao=authorizeInfoRepository.getOne(authorizeInfoEntity.getUserName());
 
         if(authorizeInfoEntity.getCodeHash()==null){
             //Check password
@@ -60,7 +60,7 @@ public class AuthorizeService {
         tokenEntity.setTokenId(UUIDUtils.getRandomUUID());
         tokenEntity.setOwnerUserName(authorizeInfoEntityFromDao.getUserName());
         tokenEntity.setGenerateTime(System.currentTimeMillis());
-        tokenDao.addToken(tokenEntity);
+        tokenRepository.save(tokenEntity);
         return tokenEntity;
     }
 
@@ -70,7 +70,7 @@ public class AuthorizeService {
      */
 
     public TokenEntity getTokenById(String tokenId){
-        return tokenDao.getTokenById(tokenId);
+        return tokenRepository.getOne(tokenId);
     }
 
     /**
@@ -79,11 +79,11 @@ public class AuthorizeService {
      */
 
     public void logout(TokenEntity tokenEntity){
-        tokenDao.deleteToken(tokenEntity);
+        tokenRepository.deleteById(tokenEntity.getTokenId());
     }
 
     public int getAuthorizeStatus(String userName){
-        return authorizeInfoDao.getAuthorizeInfoByName(userName).getAuthorizeStatus();
+        return authorizeInfoRepository.getOne(userName).getAuthorizeStatus();
     }
 
 }

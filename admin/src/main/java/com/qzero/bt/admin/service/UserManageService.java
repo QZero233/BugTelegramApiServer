@@ -1,14 +1,16 @@
 package com.qzero.bt.admin.service;
 
 import com.qzero.bt.admin.data.UserInfoForAdmin;
+import com.qzero.bt.common.authorize.dao.AuthorizeInfoRepository;
+import com.qzero.bt.common.authorize.dao.TokenRepository;
+import com.qzero.bt.common.authorize.dao.UserInfoRepository;
 import com.qzero.bt.common.exception.ResponsiveException;
-import com.qzero.bt.common.authorize.dao.AuthorizeInfoDao;
-import com.qzero.bt.common.authorize.dao.UserInfoDao;
 import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
 import com.qzero.bt.common.authorize.data.UserInfoEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +22,13 @@ import static com.qzero.bt.common.exception.ErrorCodeList.*;
 public class UserManageService {
 
     @Autowired
-    private UserInfoDao userInfoDao;
+    private UserInfoRepository userInfoRepository;
 
     @Autowired
-    private AuthorizeInfoDao authorizeInfoDao;
+    private AuthorizeInfoRepository authorizeInfoRepository;
+
+    @Autowired
+    private TokenRepository tokenRepository;
 
 
     public void addUser(AuthorizeInfoEntity authorizeInfo, UserInfoEntity userInfo) throws ResponsiveException {
@@ -36,13 +41,13 @@ public class UserManageService {
             throw new ResponsiveException(CODE_BAD_REQUEST_PARAMETER,"Invalid hash");
         }
 
-        authorizeInfoDao.addAuthorizeInfo(authorizeInfo);
-        userInfoDao.addUserInfo(userInfo);
+        authorizeInfoRepository.save(authorizeInfo);
+        userInfoRepository.save(userInfo);;
     }
 
 
     public void deleteUser(String operatorName,String username) throws ResponsiveException {
-        UserInfoEntity userInfoEntity=userInfoDao.getUserInfo(username);
+        UserInfoEntity userInfoEntity=userInfoRepository.getOne(username);
         if(userInfoEntity==null)
             throw new ResponsiveException(CODE_MISSING_RESOURCE,"User does not exist");
 
@@ -56,19 +61,21 @@ public class UserManageService {
             throw new ResponsiveException(CODE_PERMISSION_DENIED,"Can not delete system admin");
         }
 
-
-        userInfoDao.deleteUserInfo(username);
-        authorizeInfoDao.deleteAuthorizeInfo(username);
+        userInfoRepository.deleteById(username);
+        authorizeInfoRepository.deleteById(username);
     }
 
 
     public void updateUser(AuthorizeInfoEntity newAuthorizeInfo,UserInfoEntity newUserInfo) throws ResponsiveException {
-        //FIXME if freeze,delete tokens
         if(!newAuthorizeInfo.getUserName().equals(newUserInfo.getUserName()))
             throw new ResponsiveException(CODE_BAD_REQUEST_PARAMETER,"Multi username");
 
+        UserInfoEntity origin=userInfoRepository.getOne(newUserInfo.getUserName());
+        Assert.notNull(origin,"User does not exist");
+        AuthorizeInfoEntity originAuthorizeInfo=authorizeInfoRepository.getOne(newAuthorizeInfo.getUserName());
+        Assert.notNull(originAuthorizeInfo,"User does not exist");
+
         //Can not upgrade to system admin
-        UserInfoEntity origin=userInfoDao.getUserInfo(newUserInfo.getUserName());
         if(origin.getGroupLevel()<UserInfoEntity.GROUP_SYSTEM_ADMIN &&
                 newUserInfo.getGroupLevel()>=UserInfoEntity.GROUP_SYSTEM_ADMIN){
             throw new ResponsiveException(CODE_PERMISSION_DENIED,"Can not upgrade to system admin");
@@ -79,22 +86,25 @@ public class UserManageService {
             throw new ResponsiveException(CODE_PERMISSION_DENIED,"System admin can not update group level");
         }
 
+        //If freeze,delete tokens
+        if(newAuthorizeInfo.getAuthorizeStatus()==AuthorizeInfoEntity.STATUS_FREEZING){
+            tokenRepository.deleteByOwnerUserName(newUserInfo.getUserName());
+        }
         //Admin can not update codeHash and passwordHash
-        AuthorizeInfoEntity originAuthorizeInfo=authorizeInfoDao.getAuthorizeInfoByName(newAuthorizeInfo.getUserName());
         newAuthorizeInfo.setCodeHash(originAuthorizeInfo.getCodeHash());
         newAuthorizeInfo.setPasswordHash(originAuthorizeInfo.getPasswordHash());
 
-        authorizeInfoDao.updateAuthorizeInfo(newAuthorizeInfo);
-        userInfoDao.updateUserInfo(newUserInfo);
+        authorizeInfoRepository.save(newAuthorizeInfo);
+        userInfoRepository.save(newUserInfo);
     }
 
 
     public List<UserInfoForAdmin> getAllUsers(){
         List<UserInfoForAdmin> result=new ArrayList<>();
 
-        List<UserInfoEntity> userInfoEntityList=userInfoDao.getAllUserInfo();
+        List<UserInfoEntity> userInfoEntityList=userInfoRepository.findAll();
         for(UserInfoEntity userInfoEntity:userInfoEntityList){
-            AuthorizeInfoEntity authorizeInfoEntity=authorizeInfoDao.getAuthorizeInfoByName(userInfoEntity.getUserName());
+            AuthorizeInfoEntity authorizeInfoEntity=authorizeInfoRepository.getOne(userInfoEntity.getUserName());
             UserInfoForAdmin userInfoForAdmin=new UserInfoForAdmin(userInfoEntity,authorizeInfoEntity.getAuthorizeStatus());
             result.add(userInfoForAdmin);
         }
@@ -104,8 +114,8 @@ public class UserManageService {
 
 
     public UserInfoForAdmin getUser(String userName){
-        UserInfoEntity userInfoEntity=userInfoDao.getUserInfo(userName);
-        AuthorizeInfoEntity authorizeInfoEntity=authorizeInfoDao.getAuthorizeInfoByName(userName);
+        UserInfoEntity userInfoEntity=userInfoRepository.getOne(userName);
+        AuthorizeInfoEntity authorizeInfoEntity=authorizeInfoRepository.getOne(userName);
 
         return new UserInfoForAdmin(userInfoEntity,authorizeInfoEntity.getAuthorizeStatus());
     }

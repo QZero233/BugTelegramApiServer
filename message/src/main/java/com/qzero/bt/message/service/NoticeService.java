@@ -2,6 +2,8 @@ package com.qzero.bt.message.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qzero.bt.common.exception.ErrorCodeList;
+import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.common.utils.UUIDUtils;
 import com.qzero.bt.message.data.notice.DataNotice;
 import com.qzero.bt.message.data.notice.DataNoticeDao;
@@ -29,9 +31,14 @@ public class NoticeService {
         return noticeDao.findByTargetUserName(targetUserName);
     }
 
-    public void deleteNotice(String noticeId){
-        if(noticeDao.existsById(noticeId))
-            noticeDao.deleteById(noticeId);
+    public void deleteNotice(String noticeId,String operatorName) throws ResponsiveException {
+        if(!noticeDao.existsById(noticeId))
+            throw new ResponsiveException(ErrorCodeList.CODE_MISSING_RESOURCE,"Target notice does not exist");
+
+        if(!noticeDao.existsByNoticeIdAndTargetUserName(noticeId,operatorName))
+            throw new ResponsiveException(ErrorCodeList.CODE_PERMISSION_DENIED,"You have no access to the notice");
+
+        noticeDao.deleteById(noticeId);
     }
 
     public void addNotice(String targetUserName,NoticeAction action) throws JsonProcessingException {

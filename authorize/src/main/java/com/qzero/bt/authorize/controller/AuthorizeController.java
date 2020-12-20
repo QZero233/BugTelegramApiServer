@@ -1,16 +1,20 @@
 package com.qzero.bt.authorize.controller;
 
 import com.qzero.bt.authorize.service.AuthorizeService;
+import com.qzero.bt.common.authorize.GlobalUserDetailsService;
+import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
+import com.qzero.bt.common.authorize.data.TokenEntity;
+import com.qzero.bt.common.exception.ErrorCodeList;
 import com.qzero.bt.common.exception.ResponsiveException;
-import com.qzero.bt.common.permission.DisablePermissionCheck;
-import com.qzero.bt.common.permission.PermissionCheck;
-import com.qzero.bt.common.permission.PermissionNameList;
 import com.qzero.bt.common.view.ActionResult;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
-import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
-import com.qzero.bt.common.authorize.data.TokenEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,13 +27,24 @@ public class AuthorizeController {
     @Autowired
     private IPackedObjectFactory packedObjectFactory;
 
-    @DisablePermissionCheck
+    @Autowired
+    private GlobalUserDetailsService globalUserDetailsService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
     @PostMapping("/login")
     public PackedObject login(@RequestBody PackedObject parameter) throws ResponsiveException {
         TokenEntity tokenEntityForLogin=parameter.parseObject("tokenPreset",TokenEntity.class);
         AuthorizeInfoEntity authorizeInfoEntityForLogin =parameter.parseObject("loginUserInfo", AuthorizeInfoEntity.class);
 
         TokenEntity tokenEntity=service.login(authorizeInfoEntityForLogin,tokenEntityForLogin);
+
+        UserDetails userDetails=globalUserDetailsService.loadUserByUsername(authorizeInfoEntityForLogin.getUserName());
+        UsernamePasswordAuthenticationToken token
+                = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(),userDetails.getAuthorities());
+        Authentication authentication = authenticationManager.authenticate(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         PackedObject result=packedObjectFactory.getPackedObject();
 
@@ -45,21 +60,21 @@ public class AuthorizeController {
         return result;
     }
 
-
-    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_TOKEN)
     @GetMapping("/token_detail/{token_id}")
-    public PackedObject getTokenDetail(@PathVariable("token_id") String tokenId){
+    public PackedObject getTokenDetail(@PathVariable("token_id") String tokenId) throws ResponsiveException {
         TokenEntity tokenEntity=service.getTokenById(tokenId);
+
+        if(tokenEntity.getEndTime()<=System.currentTimeMillis()){
+            service.logout(tokenEntity);
+            throw new ResponsiveException(ErrorCodeList.CODE_ILLEGAL_TOKEN,"Token is expired");
+        }
 
         PackedObject result=packedObjectFactory.getReturnValue(true,null);
         result.addObject(tokenEntity);
 
-        //TODO check if the token is expired
-
         return result;
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_MODIFY_TOKEN)
     @DeleteMapping("/logout/{token_id}")
     public PackedObject logout(@PathVariable("token_id") String tokenId){
         TokenEntity tokenEntity=new TokenEntity();
@@ -71,7 +86,6 @@ public class AuthorizeController {
         return result;
     }
 
-    @PermissionCheck(PermissionNameList.PERMISSION_READ_USER_INFO)
     @GetMapping("/authorize_status/{user_name}")
     public PackedObject getAuthorizeStatus(@PathVariable("user_name") String userName){
         int status=service.getAuthorizeStatus(userName);

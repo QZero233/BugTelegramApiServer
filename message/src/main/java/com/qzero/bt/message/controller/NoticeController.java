@@ -1,10 +1,13 @@
 package com.qzero.bt.message.controller;
 
+import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.message.data.notice.DataNotice;
 import com.qzero.bt.message.service.NoticeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,8 +23,8 @@ public class NoticeController {
     private IPackedObjectFactory packedObjectFactory;
 
     @GetMapping("/")
-    public PackedObject getNotices(@RequestHeader("owner_user_name")String userName){
-        List<DataNotice> noticeList=service.getNoticeListByUser(userName);
+    public PackedObject getNotices(@AuthenticationPrincipal UserDetails userDetails){
+        List<DataNotice> noticeList=service.getNoticeListByUser(userDetails.getUsername());
 
         PackedObject returnValue=packedObjectFactory.getReturnValue(true,null);
         returnValue.addObject("DataNoticeList",noticeList);
@@ -29,8 +32,9 @@ public class NoticeController {
     }
 
     @DeleteMapping("/{notice_id}")
-    public PackedObject deleteNotice(@PathVariable("notice_id") String noticeId){
-        service.deleteNotice(noticeId);
+    public PackedObject deleteNotice(@AuthenticationPrincipal UserDetails userDetails,
+                                    @PathVariable("notice_id") String noticeId) throws ResponsiveException {
+        service.deleteNotice(noticeId, userDetails.getUsername());
 
         return packedObjectFactory.getReturnValue(true,null);
     }

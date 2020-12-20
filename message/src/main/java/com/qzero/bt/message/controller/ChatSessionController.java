@@ -1,22 +1,21 @@
 package com.qzero.bt.message.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.qzero.bt.common.exception.ErrorCodeList;
 import com.qzero.bt.common.exception.ResponsiveException;
-import com.qzero.bt.message.data.session.ChatSessionParameter;
-import com.qzero.bt.message.notice.action.ParameterBuilder;
-import com.qzero.bt.message.notice.action.SessionNoticeAction;
-import com.qzero.bt.message.service.MessageService;
-import com.qzero.bt.message.service.NoticeService;
 import com.qzero.bt.common.utils.UUIDUtils;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.message.data.session.ChatMember;
 import com.qzero.bt.message.data.session.ChatSession;
+import com.qzero.bt.message.notice.action.ParameterBuilder;
+import com.qzero.bt.message.notice.action.SessionNoticeAction;
 import com.qzero.bt.message.service.ChatSessionService;
-import com.qzero.bt.message.session.SessionParameterCheckManager;
+import com.qzero.bt.message.service.MessageService;
+import com.qzero.bt.message.service.NoticeService;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -38,27 +37,22 @@ public class ChatSessionController {
     @Autowired
     private IPackedObjectFactory packedObjectFactory;
 
-    @Autowired
-    private SessionParameterCheckManager parameterCheckManager;
-
     @PostMapping("/")
-    public PackedObject createChatSession(@RequestHeader("owner_user_name") String userName,
-                                          @RequestBody PackedObject parameter) throws JsonProcessingException {
+    public PackedObject createChatSession(@AuthenticationPrincipal UserDetails userDetails,
+                                          @RequestBody PackedObject parameter) throws JsonProcessingException, ResponsiveException {
 
         ChatSession chatSession =parameter.parseObject(ChatSession.class);
 
         String sessionId= UUIDUtils.getRandomUUID();
         chatSession.setSessionId(sessionId);
 
-        chatSession.setChatMembers(Arrays.asList(new ChatMember(sessionId,userName, ChatMember.LEVEL_OWNER)));
-
-        if(!parameterCheckManager.checkCompulsoryParameter(chatSession))
-            throw new IllegalArgumentException("Session parameter is illegal");
+        chatSession.setChatMembers(Arrays.asList(new ChatMember(sessionId,userDetails.getUsername(), ChatMember.LEVEL_OWNER)));
 
         sessionService.createSession(chatSession);
 
-        noticeService.addNotice(userName,new SessionNoticeAction(SessionNoticeAction.ActionType.NEW_SESSION,sessionId,null,userName));
-        noticeService.remindTargetUser(userName);
+        noticeService.addNotice(userDetails.getUsername(),
+                new SessionNoticeAction(SessionNoticeAction.ActionType.NEW_SESSION,sessionId,null, userDetails.getUsername()));
+        noticeService.remindTargetUser(userDetails.getUsername());
 
         PackedObject returnValue=packedObjectFactory.getReturnValue(true,sessionId);
         returnValue.addObject(chatSession);
@@ -66,13 +60,9 @@ public class ChatSessionController {
     }
 
     @GetMapping("/{session_id}")
-    public PackedObject getChatSession(@RequestHeader("owner_user_name") String userName,
+    public PackedObject getChatSession(@AuthenticationPrincipal UserDetails userDetails,
                                        @PathVariable("session_id")String sessionId) throws ResponsiveException {
-
-        if(!sessionService.isMemberIn(sessionId,userName))
-            throw new ResponsiveException(ErrorCodeList.CODE_PERMISSION_DENIED,"You are not one of the members");
-
-        ChatSession chatSession =sessionService.findSession(sessionId);
+        ChatSession chatSession =sessionService.findSession(sessionId,userDetails.getUsername());
 
         chatSession = (ChatSession) Hibernate.unproxy(chatSession);
 
@@ -82,40 +72,34 @@ public class ChatSessionController {
     }
 
     @PostMapping("/{session_id}/members")
-    public PackedObject addChatMember(@RequestHeader("owner_user_name") String userName,
+    public PackedObject addChatMember(@AuthenticationPrincipal UserDetails userDetails,
                                       @PathVariable("session_id")String sessionId,
                                       @RequestParam("member_user_name")String memberUserName) throws ResponsiveException, JsonProcessingException {
-        if(!sessionService.isOperator(sessionId,userName))
-            throw new ResponsiveException(ErrorCodeList.CODE_PERMISSION_DENIED,"You are not one of the operators");
 
         ChatMember chatMember=new ChatMember();
         chatMember.setSessionId(sessionId);
         chatMember.setLevel(ChatMember.LEVEL_NORMAL);
         chatMember.setUserName(memberUserName);
 
-        sessionService.addChatMember(chatMember);
+        sessionService.addChatMember(chatMember,userDetails.getUsername());
 
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
         SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.NEW_MEMBER,sessionId,
-                new ParameterBuilder().addParameter("memberUserName",memberUserName).build(),userName);
+                new ParameterBuilder().addParameter("memberUserName",memberUserName).build(),userDetails.getUsername());
         noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
         return packedObjectFactory.getReturnValue(true,null);
     }
 
     @DeleteMapping("/{session_id}/members")
-    public PackedObject removeChatMember(@RequestHeader("owner_user_name") String userName,
+    public PackedObject removeChatMember(@AuthenticationPrincipal UserDetails userDetails,
                                          @PathVariable("session_id")String sessionId,
                                          @RequestParam("member_user_name")String memberUserName) throws ResponsiveException, JsonProcessingException {
 
-        //You can quit a session with this method
-        if(!memberUserName.equals(userName) && !sessionService.isOperator(sessionId,userName))
-            throw new ResponsiveException(ErrorCodeList.CODE_PERMISSION_DENIED,"You are not one of the operators");
-
-        sessionService.removeChatMember(new ChatMember(sessionId,memberUserName,0));
+        sessionService.removeChatMember(new ChatMember(sessionId,memberUserName,0),userDetails.getUsername());
 
         SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.REMOVE_MEMBER,sessionId,
-                new ParameterBuilder().addParameter("memberUserName",memberUserName).build(),userName);
+                new ParameterBuilder().addParameter("memberUserName",memberUserName).build(),userDetails.getUsername());
 
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
         memberNames.add(memberUserName);
@@ -127,7 +111,7 @@ public class ChatSessionController {
 
 
     @PutMapping("/{session_id}/members/{member_user_name}/level")
-    public PackedObject updateChatMemberLevel(@RequestHeader("owner_user_name") String userName,
+    public PackedObject updateChatMemberLevel(@AuthenticationPrincipal UserDetails userDetails,
                                          @PathVariable("session_id")String sessionId,
                                          @PathVariable("member_user_name")String memberUserName,
                                          @RequestParam("level") int level) throws ResponsiveException, JsonProcessingException {
@@ -136,11 +120,11 @@ public class ChatSessionController {
         chatMember.setLevel(level);
         chatMember.setSessionId(sessionId);
 
-        sessionService.updateChatMemberLevel(chatMember);
+        sessionService.updateChatMemberLevel(chatMember,userDetails.getUsername());
 
         SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.UPDATE_MEMBER_LEVEL,sessionId,
                 new ParameterBuilder().addParameter("memberUserName",memberUserName).addParameter("level",String.valueOf(level)).build(),
-                userName);
+                userDetails.getUsername());
 
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
         noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
@@ -151,24 +135,24 @@ public class ChatSessionController {
 
 
     @DeleteMapping("/{session_id}")
-    public PackedObject deleteSession(@RequestHeader("owner_user_name") String userName,
+    public PackedObject deleteSession(@AuthenticationPrincipal UserDetails userDetails,
                                       @PathVariable("session_id")String sessionId) throws Exception {
 
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
         SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.DELETE_SESSION,sessionId,
-                null,userName);
+                null, userDetails.getUsername());
         noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
-        sessionService.deleteSession(sessionId);
-        messageService.deleteAllMessageBySessionId(sessionId);
+        sessionService.deleteSession(sessionId, userDetails.getUsername());
+        messageService.deleteAllMessageBySessionId(sessionId, userDetails.getUsername());
 
         return packedObjectFactory.getReturnValue(true,null);
     }
 
 
     @GetMapping("/")
-    public PackedObject getAllSessions(@RequestHeader("owner_user_name") String userName){
-        List<ChatSession> chatSessionList=sessionService.getAllSessions(userName);
+    public PackedObject getAllSessions(@AuthenticationPrincipal UserDetails userDetails){
+        List<ChatSession> chatSessionList=sessionService.getAllSessions(userDetails.getUsername());
 
         PackedObject result=packedObjectFactory.getReturnValue(true,null);
         result.addObject("ChatSessionList",chatSessionList);
@@ -176,22 +160,15 @@ public class ChatSessionController {
     }
 
     @PutMapping("/{session_id}/{parameter_name}")
-    public PackedObject updateSessionParameter(@RequestHeader("owner_user_name") String userName,
+    public PackedObject updateSessionParameter(@AuthenticationPrincipal UserDetails userDetails,
                                       @PathVariable("session_id")String sessionId,
                                       @PathVariable("parameter_name")String parameterName,
-                                      @RequestParam("parameter_value")String parameterValue) throws JsonProcessingException, IllegalAccessException {
-
-
-        if(!parameterCheckManager.checkOperationPermission(sessionId,parameterName,userName, SessionParameterCheckManager.Operation.OPERATION_UPDATE))
-            throw new IllegalAccessException("You have no access to the parameter named "+parameterName);
-
-        ChatSession session=new ChatSession();
-        session.setSessionId(sessionId);
-        sessionService.updateSessionParameter(session, parameterName,parameterValue);
+                                      @RequestParam("parameter_value")String parameterValue) throws JsonProcessingException, IllegalAccessException, ResponsiveException {
+        sessionService.updateSessionParameter(sessionId, parameterName,parameterValue,userDetails.getUsername());
 
         SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.UPDATE_SESSION_PARAMETER,sessionId,
                 new ParameterBuilder().addParameter("parameterName",parameterName).
-                        addParameter("parameterValue",parameterValue).build(),userName);
+                        addParameter("parameterValue",parameterValue).build(),userDetails.getUsername());
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
         noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
@@ -199,19 +176,13 @@ public class ChatSessionController {
     }
 
     @DeleteMapping("/{session_id}/{parameter_name}")
-    public PackedObject deleteSessionParameter(@RequestHeader("owner_user_name") String userName,
+    public PackedObject deleteSessionParameter(@AuthenticationPrincipal UserDetails userDetails,
                                                @PathVariable("session_id")String sessionId,
-                                               @PathVariable("parameter_name")String parameterName) throws IllegalAccessException, JsonProcessingException {
-
-        if(!parameterCheckManager.checkOperationPermission(sessionId,parameterName,userName, SessionParameterCheckManager.Operation.OPERATION_DELETE))
-            throw new IllegalAccessException("You have no access to the parameter named "+parameterName);
-
-        ChatSession session=new ChatSession();
-        session.setSessionId(sessionId);
-        sessionService.deleteSessionParameter(session,parameterName);
+                                               @PathVariable("parameter_name")String parameterName) throws IllegalAccessException, JsonProcessingException, ResponsiveException {
+        sessionService.deleteSessionParameter(sessionId,parameterName, userDetails.getUsername());
 
         SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.DELETE_SESSION_PARAMETER,sessionId,
-                new ParameterBuilder().addParameter("parameterName",parameterName).build(),userName);
+                new ParameterBuilder().addParameter("parameterName",parameterName).build(),userDetails.getUsername());
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
         noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
@@ -219,21 +190,15 @@ public class ChatSessionController {
     }
 
     @PostMapping("/{session_id}/{parameter_name}")
-    public PackedObject addSessionParameter(@RequestHeader("owner_user_name") String userName,
+    public PackedObject addSessionParameter(@AuthenticationPrincipal UserDetails userDetails,
                                             @PathVariable("session_id")String sessionId,
                                             @PathVariable("parameter_name")String parameterName,
-                                            @RequestParam("parameter_value")String parameterValue) throws IllegalAccessException, JsonProcessingException {
-
-        if(!parameterCheckManager.checkOperationPermission(sessionId,parameterName,userName, SessionParameterCheckManager.Operation.OPERATION_INSERT))
-            throw new IllegalAccessException("You have no access to the parameter named "+parameterName);
-
-        ChatSession session=new ChatSession();
-        session.setSessionId(sessionId);
-        sessionService.addSessionParameter(session, parameterName,parameterValue);
+                                            @RequestParam("parameter_value")String parameterValue) throws IllegalAccessException, JsonProcessingException, ResponsiveException {
+        sessionService.addSessionParameter(sessionId, parameterName,parameterValue, userDetails.getUsername());
 
         SessionNoticeAction noticeAction=new SessionNoticeAction(SessionNoticeAction.ActionType.ADD_SESSION_PARAMETER,sessionId,
                 new ParameterBuilder().addParameter("parameterName",parameterName).
-                        addParameter("parameterValue",parameterValue).build(),userName);
+                        addParameter("parameterValue",parameterValue).build(),userDetails.getUsername());
         List<String> memberNames=sessionService.findAllMemberNames(sessionId);
         noticeService.addNoticeForGroupOfUsersAndRemind(memberNames,noticeAction);
 
