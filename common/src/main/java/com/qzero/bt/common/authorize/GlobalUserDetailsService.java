@@ -53,7 +53,7 @@ public class GlobalUserDetailsService implements UserDetailsService {
         }
 
         return new User(userName,authorizeInfoEntity.getPasswordHash(),true,true,true,
-                authorizeInfoEntity.getAuthorizeStatus()!=AuthorizeInfoEntity.STATUS_FREEZING
+                true
                 ,grantedAuthorityCollection);
     }
 

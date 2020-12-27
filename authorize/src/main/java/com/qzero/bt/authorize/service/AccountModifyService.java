@@ -58,7 +58,8 @@ public class AccountModifyService {
         authorizeInfoEntity.setAuthorizeStatus(AuthorizeInfoEntity.STATUS_FREEZING);
         authorizeInfoRepository.save(authorizeInfoEntity);
 
-        tokenRepository.deleteByOwnerUserName(userName);
+        tokenRepository.deleteByOwnerUserNameAndPermissionLevelLessThan(userName,
+                TokenEntity.PERMISSION_LEVEL_GLOBAL);
     }
 
 

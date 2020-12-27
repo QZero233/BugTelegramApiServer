@@ -11,6 +11,8 @@ public interface TokenRepository extends JpaRepository<TokenEntity,String> {
 
     void deleteByOwnerUserName(String ownerUserName);
 
+    void deleteByOwnerUserNameAndPermissionLevelLessThan(String ownerUserName, int maxPermissionLevel);
+
     List<TokenEntity> getAllByOwnerUserName(String ownerUserName);
 
 }

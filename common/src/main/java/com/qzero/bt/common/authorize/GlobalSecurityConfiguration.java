@@ -34,12 +34,12 @@ public class GlobalSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                     .and()
-                .apply(tokenFilterConfiguration)
-                    .and()
                 .authorizeRequests()
                     .antMatchers("/admin/**").hasRole("ADMIN")
                     .antMatchers("/authorize/login").permitAll()
-                    .anyRequest().authenticated();
+                    .anyRequest().authenticated()
+                    .and()
+                .apply(tokenFilterConfiguration);
     }
 
     @Bean

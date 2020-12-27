@@ -4,6 +4,7 @@ import com.qzero.bt.admin.data.UserInfoForAdmin;
 import com.qzero.bt.common.authorize.dao.AuthorizeInfoRepository;
 import com.qzero.bt.common.authorize.dao.TokenRepository;
 import com.qzero.bt.common.authorize.dao.UserInfoRepository;
+import com.qzero.bt.common.authorize.data.TokenEntity;
 import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
 import com.qzero.bt.common.authorize.data.UserInfoEntity;
@@ -88,7 +89,8 @@ public class UserManageService {
 
         //If freeze,delete tokens
         if(newAuthorizeInfo.getAuthorizeStatus()==AuthorizeInfoEntity.STATUS_FREEZING){
-            tokenRepository.deleteByOwnerUserName(newUserInfo.getUserName());
+            tokenRepository.deleteByOwnerUserNameAndPermissionLevelLessThan(newUserInfo.getUserName(),
+                    TokenEntity.PERMISSION_LEVEL_GLOBAL);
         }
         //Admin can not update codeHash and passwordHash
         newAuthorizeInfo.setCodeHash(originAuthorizeInfo.getCodeHash());

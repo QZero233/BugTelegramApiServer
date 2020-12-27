@@ -68,15 +68,4 @@ public class AdminController {
 
         return returnValue;
     }
-
-    @GetMapping("/user/{user_name}")
-    public PackedObject getUser(@PathVariable("user_name") String userName){
-        UserInfoForAdmin result=service.getUser(userName);
-
-        PackedObject returnValue=packedObjectFactory.getReturnValue(true,null);
-        returnValue.addObject(result);
-
-        return returnValue;
-    }
-
 }

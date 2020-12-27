@@ -14,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 //FIXME DID NOT VERIFY TOKEN PERMISSION
@@ -29,15 +30,20 @@ public class AccountModifyController {
 
     @GetMapping("/token_list}")
     public PackedObject getTokenList(@AuthenticationPrincipal UserDetails userDetails){
-        List<TokenEntity> tokenEntityList=service.getTokenList(userDetails.getUsername());
+        List<TokenEntity> tokenEntityListProxy=service.getTokenList(userDetails.getUsername());
         PackedObject result;
-        if(tokenEntityList==null){
+        if(tokenEntityListProxy==null){
             result=packedObjectFactory.getReturnValue(false,null);
-        }else{
-            result=packedObjectFactory.getReturnValue(true,null);
-            result.addObject("tokenList",tokenEntityList);
+            return result;
         }
 
+        List<TokenEntity> tokenEntityList=new ArrayList<>();
+        for(TokenEntity tokenEntity:tokenEntityListProxy){
+            tokenEntityList.add(Hibernate.unproxy(tokenEntity,TokenEntity.class));
+        }
+
+        result=packedObjectFactory.getReturnValue(true,null);
+        result.addObject("tokenList",tokenEntityList);
         return result;
     }
 
