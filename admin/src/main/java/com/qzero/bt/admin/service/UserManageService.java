@@ -8,6 +8,7 @@ import com.qzero.bt.common.authorize.data.TokenEntity;
 import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.common.authorize.data.AuthorizeInfoEntity;
 import com.qzero.bt.common.authorize.data.UserInfoEntity;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,20 +107,15 @@ public class UserManageService {
 
         List<UserInfoEntity> userInfoEntityList=userInfoRepository.findAll();
         for(UserInfoEntity userInfoEntity:userInfoEntityList){
+
+            userInfoEntity= Hibernate.unproxy(userInfoEntity,UserInfoEntity.class);
+
             AuthorizeInfoEntity authorizeInfoEntity=authorizeInfoRepository.getOne(userInfoEntity.getUserName());
             UserInfoForAdmin userInfoForAdmin=new UserInfoForAdmin(userInfoEntity,authorizeInfoEntity.getAuthorizeStatus());
             result.add(userInfoForAdmin);
         }
 
         return result;
-    }
-
-
-    public UserInfoForAdmin getUser(String userName){
-        UserInfoEntity userInfoEntity=userInfoRepository.getOne(userName);
-        AuthorizeInfoEntity authorizeInfoEntity=authorizeInfoRepository.getOne(userName);
-
-        return new UserInfoForAdmin(userInfoEntity,authorizeInfoEntity.getAuthorizeStatus());
     }
 
 }

@@ -9,3 +9,10 @@ spring:
   jpa:
     show-sql: true
 debug: true
+
+server:
+  ssl:
+    enabled: true
+    key-store: classpath:bthttps.jks
+    #key-alias: BugTelegram
+    key-store-password: bugtelegram

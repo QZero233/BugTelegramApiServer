@@ -34,6 +34,10 @@ public class ChatMessage {
     @Column(name = "messageStatus")
     private String messageStatus;
 
+    @Basic
+    @Column(name = "messageType")
+    private String messageType;
+
     public ChatMessage() {
     }
 
@@ -85,6 +89,14 @@ public class ChatMessage {
         this.messageStatus = messageStatus;
     }
 
+    public String getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
+    }
+
     @Override
     public String toString() {
         return "ChatMessage{" +
@@ -94,6 +106,7 @@ public class ChatMessage {
                 ", content=" + Arrays.toString(content) +
                 ", sendTime=" + sendTime +
                 ", messageStatus='" + messageStatus + '\'' +
+                ", messageType='" + messageType + '\'' +
                 '}';
     }
 }
