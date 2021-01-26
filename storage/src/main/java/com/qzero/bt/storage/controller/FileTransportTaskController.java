@@ -1,12 +1,15 @@
 package com.qzero.bt.storage.controller;
 
+import com.qzero.bt.common.exception.ErrorCodeList;
 import com.qzero.bt.common.exception.ResponsiveException;
+import com.qzero.bt.common.view.ActionResult;
 import com.qzero.bt.common.view.IPackedObjectFactory;
 import com.qzero.bt.common.view.PackedObject;
 import com.qzero.bt.storage.data.FileResource;
 import com.qzero.bt.storage.data.FileResourceManager;
 import com.qzero.bt.storage.service.FileResourceService;
 import com.qzero.bt.storage.service.FileUploadRecordService;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -53,6 +56,24 @@ public class FileTransportTaskController {
         }
 
         return objectFactory.getReturnValue(true,null);
+    }
+
+    @GetMapping("/{resource_id}")
+    public PackedObject getFileResourceInfo(@AuthenticationPrincipal UserDetails userDetails,
+                                            @PathVariable("resource_id") String resourceId) throws ResponsiveException {
+
+        if(!resourceService.checkResourcePermission(resourceId,userDetails.getUsername()))
+            return objectFactory.getReturnValue(false,"Resource is not accessible");
+
+        FileResource resource=resourceService.getFileResource(resourceId);
+        if(resource==null)
+            throw new ResponsiveException(ErrorCodeList.CODE_MISSING_RESOURCE,"File resource does not found");
+
+        resource= Hibernate.unproxy(resource,FileResource.class);
+
+        PackedObject returnValue=objectFactory.getReturnValue(true,null);
+        returnValue.addObject(resource);
+        return returnValue;
     }
 
 
