@@ -8,6 +8,10 @@ spring:
     password: 123456
   jpa:
     show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 debug: true
 
 server:
