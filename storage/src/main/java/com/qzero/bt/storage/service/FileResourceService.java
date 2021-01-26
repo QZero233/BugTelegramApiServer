@@ -60,7 +60,7 @@ public class FileResourceService {
         resourceDao.save(resource);
     }
 
-    public boolean checkIfResourceAccessible(String resourceId,String operatorName) throws ResponsiveException {
+    public boolean checkResourcePermission(String resourceId, String operatorName) throws ResponsiveException {
         if(!resourceDao.existsById(resourceId))
             throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER, String.format("File resource with id %s does not exists", resourceId));
 
@@ -68,11 +68,11 @@ public class FileResourceService {
         if(!resource.getOwnerUserName().equals(operatorName))
             throw new ResponsiveException(ErrorCodeList.CODE_PERMISSION_DENIED,"You have no permission to file resource with id "+resourceId);
 
-        return resource.getResourceStatus()!=FileResource.STATUS_FREEZING;
+        return true;
     }
 
     public boolean checkIfResourceCanBeDownloaded(String resourceId,String operatorName) throws ResponsiveException {
-        if(!checkIfResourceAccessible(resourceId,operatorName))
+        if(!checkResourcePermission(resourceId,operatorName))
             return false;
 
         FileResource resource=resourceDao.getOne(resourceId);

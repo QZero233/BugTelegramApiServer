@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/storage/task")
+@RequestMapping("/storage/resource")
 public class FileTransportTaskController {
 
     @Autowired
@@ -42,9 +42,10 @@ public class FileTransportTaskController {
     @DeleteMapping("/{resource_id}")
     public PackedObject deleteFileResource(@AuthenticationPrincipal UserDetails userDetails,
                                            @PathVariable("resource_id") String resourceId) throws ResponsiveException {
-        if(!resourceService.checkIfResourceAccessible(resourceId,userDetails.getUsername()))
+        if(!resourceService.checkResourcePermission(resourceId,userDetails.getUsername()))
             return objectFactory.getReturnValue(false,"Resource is not accessible");
         resourceService.deleteFileResource(resourceId);
+        resourceManager.deleteResourceFile(resourceId);
 
         if(recordService.isRecordExist(resourceId)){
             resourceManager.deleteTempFiles(resourceId);

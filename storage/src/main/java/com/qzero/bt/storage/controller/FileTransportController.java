@@ -46,6 +46,9 @@ public class FileTransportController {
                                         @PathVariable("block_index") int blockIndex,
                                         @RequestParam("file") MultipartFile file) throws ResponsiveException, IOException {
 
+        if(!resourceService.checkResourcePermission(resourceId,userDetails.getUsername()))
+            return objectFactory.getReturnValue(false,"Resource is not accessible");
+
         FileUploadRecord record=recordService.getRecord(resourceId);
         if(blockIndex+1>record.getAllBlockCount())
             throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER,"Block index is overflowed");
