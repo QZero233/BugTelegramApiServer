@@ -51,6 +51,13 @@ public class FileResourceService {
         resourceDao.deleteById(resourceId);
     }
 
+    public FileResource getFileResource(String resourceId){
+        if(!resourceDao.existsById(resourceId))
+            return null;
+
+        return resourceDao.getOne(resourceId);
+    }
+
     public void updateFileResourceStatus(String resourceId,int newStatus) throws ResponsiveException {
         if(!resourceDao.existsById(resourceId))
             throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER, String.format("File resource with id %s does not exists", resourceId));
@@ -76,7 +83,10 @@ public class FileResourceService {
             return false;
 
         FileResource resource=resourceDao.getOne(resourceId);
-        return resource.getResourceStatus()==FileResource.STATUS_READY;
+        if(resource.getResourceStatus()!=FileResource.STATUS_READY)
+            throw new ResponsiveException(ErrorCodeList.CODE_MISSING_RESOURCE,"File resource has not been ready yet");
+
+        return true;
     }
 
 }

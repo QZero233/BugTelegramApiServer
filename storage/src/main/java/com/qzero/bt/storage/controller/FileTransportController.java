@@ -18,8 +18,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 
 @Controller
 @RequestMapping("/storage/transport")
@@ -77,6 +80,48 @@ public class FileTransportController {
         }
 
         return objectFactory.getReturnValue(true,String.valueOf(remainBlock));
+    }
+
+    @GetMapping("/{resource_id}")
+    public void downloadFileBlock(@AuthenticationPrincipal UserDetails userDetails,
+                                  @PathVariable("resource_id") String resourceId,
+                                  @RequestParam("offset") Long offset,
+                                  @RequestParam("length")Long length,
+                                  HttpServletResponse response) throws ResponsiveException,IOException {
+
+        if(!resourceService.checkIfResourceCanBeDownloaded(resourceId,userDetails.getUsername()))
+            throw new ResponsiveException(ErrorCodeList.CODE_MISSING_RESOURCE,"File resource has not been ready yet");
+
+        if(length>FileUploadRecord.MAX_TRANSPORT_SIZE)
+            throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER,"Length is more than "+FileUploadRecord.MAX_TRANSPORT_SIZE);
+
+        FileResource resource=resourceService.getFileResource(resourceId);
+        if(offset+length>resource.getResourceLength())
+            throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER,"Offset+Length is more than file length"+resource.getResourceLength());
+
+        RandomAccessFile randomAccessFile=new RandomAccessFile(resourceManager.getResourceFile(resourceId),"r");
+
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment; filename=1.txt");
+        OutputStream outputStream = response.getOutputStream();
+
+        byte[] buf=new byte[2048];
+        randomAccessFile.seek(offset);
+
+        long totalLength=0;
+        int len;
+        while ((len=randomAccessFile.read(buf))!=-1){
+            totalLength+=len;
+            if(totalLength>length){
+                int extra= (int) (totalLength-length);
+                len-=extra;
+            }
+
+            outputStream.write(buf,0,len);
+        }
+
+        randomAccessFile.close();
+        outputStream.close();
     }
 
 }
