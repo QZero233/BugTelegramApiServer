@@ -5,10 +5,12 @@ import com.qzero.bt.common.exception.ResponsiveException;
 import com.qzero.bt.common.utils.UUIDUtils;
 import com.qzero.bt.storage.data.FileResource;
 import com.qzero.bt.storage.data.FileResourceDao;
-import com.qzero.bt.storage.data.FileUploadRecord;
-import com.qzero.bt.storage.data.FileUploadRecordDao;
+import com.qzero.bt.storage.data.FileResourceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.List;
 
 @Component
 public class FileResourceService {
@@ -17,32 +19,23 @@ public class FileResourceService {
     private FileResourceDao resourceDao;
 
     @Autowired
-    private FileUploadRecordDao recordDao;
+    private FileResourceManager resourceManager;
 
     /**
      *
      * @param fileResource
      * @return The resourceId of the file resource
      */
-    public String addFileResourceAndTransportTask(FileResource fileResource,long transportBlockSize,String operatorUserName) throws ResponsiveException {
-        if(transportBlockSize>= FileUploadRecord.MAX_TRANSPORT_SIZE)
-            throw new ResponsiveException(ErrorCodeList.CODE_BAD_REQUEST_PARAMETER,"Block size is more than 10MB");
-
+    public String addFileResource(FileResource fileResource,String operatorUserName) throws IOException {
         String resourceId= UUIDUtils.getRandomUUID();
 
         fileResource.setResourceId(resourceId);
         fileResource.setOwnerUserName(operatorUserName);
         fileResource.setResourceStatus(FileResource.STATUS_TRANSPORTING);
 
-        FileUploadRecord record=new FileUploadRecord();
-        record.setResourceId(resourceId);
-        record.setBlockSize(transportBlockSize);
-        record.setEntireBlockCount(TransportBlockCalculator.getEntireBlockCount(fileResource.getResourceLength(),transportBlockSize));
-        record.setFileLength(fileResource.getResourceLength());
-        record.setRestContentSize(TransportBlockCalculator.getRestContentSize(fileResource.getResourceLength(),transportBlockSize));
-
         resourceDao.save(fileResource);
-        recordDao.save(record);
+
+        resourceManager.createResourceFile(resourceId,fileResource.getResourceLength());
 
         return resourceId;
     }
@@ -56,6 +49,10 @@ public class FileResourceService {
             return null;
 
         return resourceDao.getOne(resourceId);
+    }
+
+    public List<FileResource> getAllFileResources(String userName){
+        return resourceDao.findAllByOwnerUserName(userName);
     }
 
     public void updateFileResourceStatus(String resourceId,int newStatus) throws ResponsiveException {

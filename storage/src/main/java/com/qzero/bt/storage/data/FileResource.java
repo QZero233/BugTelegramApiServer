@@ -14,6 +14,8 @@ public class FileResource {
     public static final int STATUS_READY=1;
     public static final int STATUS_FREEZING=2;
 
+    public static final long MAX_TRANSPORT_SIZE=10000000;
+
     @Id
     @Basic
     @Column(name = "resourceId")
